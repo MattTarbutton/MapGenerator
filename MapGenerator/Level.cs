@@ -113,18 +113,6 @@ namespace MapGenerator
             get { return _gridLineHeight; }
             set { _gridLineHeight = value; }
         }
-        //public bool makeMaze;
-        //public bool initialize;
-        //public bool regenerate;
-        //public bool cleanup;
-        //public bool fullRegenerate;
-        //public GameObject wall;
-        //public GameObject noColliderWall;
-        //public GameObject corner;
-        //public GameObject smallCorner;
-        //public GameObject player;
-
-        //private SpriteRenderer spriteRenderer;
 
         private int _rngSeed;
         public int RngSeed
@@ -181,30 +169,30 @@ namespace MapGenerator
             _rng = new System.Random(_rngSeed);
             await Task.Run(() =>
             {
-                GenerateRandomWalkLevel();
-
-                try
+                
+                    GenerateRandomWalkLevel();
+                //try
                 {
-                if (DrawSmooth)
+                    if (DrawSmooth)
                     {
                         WriteToTexture(_map, _pixelsPerMapUnit, _pixelsPerMapUnit, true);
                     }
                     else
                     {
-                        WriteToTexture(_map, _pixelsPerMapUnit, _pixelsPerMapUnit, false);
+                        //WriteToTexture(_map, _pixelsPerMapUnit, _pixelsPerMapUnit, false);
                     }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                    tex = new Bitmap(MapWidth * _pixelsPerMapUnit, MapHeight * _pixelsPerMapUnit);
-                    Graphics g = Graphics.FromImage(tex);
-                    g.FillRectangle(System.Drawing.Brushes.White, 0, 0, MapWidth * _pixelsPerMapUnit, MapHeight * _pixelsPerMapUnit);
-                    g.DrawImage(SystemIcons.Error.ToBitmap(), MapWidth * _pixelsPerMapUnit / 2, MapHeight * _pixelsPerMapUnit / 2, SystemIcons.Error.ToBitmap().Width * 2, SystemIcons.Error.ToBitmap().Height * 2);
-                    Font stringFont = new Font(FontFamily.GenericMonospace, 36, FontStyle.Regular);
-                    //g.DrawString("Something has gone wrong", stringFont, Brushes.Black, MapWidth * _pixelsPerMapUnit / 2 - 340, MapHeight * _pixelsPerMapUnit / 2 - 75);
-                    g.DrawString("Invalid Parameters", stringFont, Brushes.Black, MapWidth * _pixelsPerMapUnit / 2 - 255, MapHeight * _pixelsPerMapUnit / 2 + 75);
-                }
+                //catch (Exception ex)
+                //{
+                //    Console.WriteLine(ex.ToString());
+                //    tex = new Bitmap(600, 600);
+                //    Graphics g = Graphics.FromImage(tex);
+                //    g.FillRectangle(System.Drawing.Brushes.White, 0, 0, 600, 600);
+                //    g.DrawImage(SystemIcons.Error.ToBitmap(), 300, 300, SystemIcons.Error.ToBitmap().Width * 2, SystemIcons.Error.ToBitmap().Height * 2);
+                //    Font stringFont = new Font(FontFamily.GenericMonospace, 36, FontStyle.Regular);
+                //    //g.DrawString("Something has gone wrong", stringFont, Brushes.Black, MapWidth * _pixelsPerMapUnit / 2 - 340, MapHeight * _pixelsPerMapUnit / 2 - 75);
+                //    g.DrawString("Invalid Parameters", stringFont, Brushes.Black, 45, 375);
+                //}
 
                 OnLevelRegenerated?.Invoke();
             });
@@ -539,26 +527,45 @@ namespace MapGenerator
             Point startPointMazeCell = new Point(startPoint.x * MazeColumns / MapWidth, startPoint.y * MazeRows / MapHeight);
             for (int i = 0; i < newMap.GetLength(0); i++)
             {
-                if ((int)(i * MazeColumns / MapWidth) != startPointMazeCell.X)
-                {
-                    if (newMap[i, 0] != 0 && startPointMazeCell.Y != 0)
-                        newMap[i, 0] = 0;
-                    if (newMap[i, newMap.GetLength(1) - 1] != 0 && startPointMazeCell.Y != newMap.GetLength(1) - 1)
-                        newMap[i, newMap.GetLength(1) - 1] = 0;
-                }
+                bool onMazeX = (int)(i * MazeColumns / MapWidth) == startPointMazeCell.X;
+                
+                if (newMap[i, 0] != 0 && !(startPointMazeCell.Y == 0 && onMazeX))
+                    newMap[i, 0] = 0;
+                if (newMap[i, newMap.GetLength(1) - 1] != 0 && !(startPointMazeCell.Y == MazeRows - 1 && onMazeX))
+                    newMap[i, newMap.GetLength(1) - 1] = 0;
             }
             for (int i = 0; i < newMap.GetLength(1); i++)
             {
-                if ((int)(i * MazeRows / MapWidth) != startPointMazeCell.Y)
-                {
-                    if (newMap[0, i] != 0 && startPointMazeCell.X != 0)
-                        newMap[0, i] = 0;
-                    if (newMap[newMap.GetLength(0) - 1, i] != 0 && startPointMazeCell.X != newMap.GetLength(0) - 1)
-                        newMap[newMap.GetLength(0) - 1, i] = 0;
-                }
+                bool onMazeY = (int)(i * MazeRows / MapWidth) == startPointMazeCell.Y;
+
+                if (newMap[0, i] != 0 && !(startPointMazeCell.X == 0 && onMazeY))
+                    newMap[0, i] = 0;
+                if (newMap[newMap.GetLength(0) - 1, i] != 0 && !(startPointMazeCell.X == MazeColumns - 1 && onMazeY))
+                    newMap[newMap.GetLength(0) - 1, i] = 0;
             }
 
             return newMap;
+        }
+
+        private void DebugWriteToTexture(int [,] map, int horizontalScale, int verticalScale)
+        {
+            tex = new Bitmap(map.GetLength(0) * horizontalScale, map.GetLength(1) * verticalScale);
+            Graphics g = Graphics.FromImage(tex);
+            g.FillRectangle(System.Drawing.Brushes.White, 0, 0, map.GetLength(0) * horizontalScale, map.GetLength(1) * verticalScale);
+
+            Pen linePen = new Pen(Color.Black, LineSize);
+            for (int i = 0; i < map.GetLength(0); i++)
+            {
+                for (int j = 0; j < map.GetLength(1); j++)
+                {
+                    if (map[i, j] != 0)
+                    {
+                        g.FillRectangle(Brushes.Black, i * horizontalScale, j * verticalScale, horizontalScale, verticalScale);
+                    }
+                }
+            }
+
+            g.Dispose();
         }
 
         private void WriteToTextureBad(int[,] map, int horizontalScale, int verticalScale)
@@ -718,9 +725,10 @@ namespace MapGenerator
                         Point currentPoint = new Point(i, j);
                         openSet.Add(UniquePointHashCode(currentPoint, map), currentPoint);
                         //g.DrawEllipse(linePen, i * horizontalScale, j * verticalScale, horizontalScale / 4, verticalScale / 4);
-                        if (IndexOnEdge(map, i, j) && CountAdjacentNeighborsNotOfValue(map, i, j, 0) > 1)
+                        if (IndexOnEdge(map, i, j) && CountAdjacentNeighborsNotOfValue(map, i, j, 0) >= 1)
                         {
                             singleNeighbor.Add(currentPoint);
+                            //g.DrawEllipse(linePen, i * horizontalScale, j * verticalScale, horizontalScale * 4, verticalScale * 4);
                         }
                     }
                 }
@@ -737,24 +745,24 @@ namespace MapGenerator
                     singleNeighbor.Remove(currentPoint);
                     continue;
                 }
-                Point lastVertex;
-                lastVertex = new Point(currentPoint.X, currentPoint.Y);
-                if (currentPoint.X < 1)
-                {
-                    lastVertex = new Point(0, currentPoint.Y * verticalScale);
-                }
-                else if (currentPoint.X > map.GetLength(0) - 2)
-                {
-                    lastVertex = new Point(map.GetLength(0) * horizontalScale, currentPoint.Y * verticalScale);
-                }
-                else if (currentPoint.Y < 1)
-                {
-                    lastVertex = new Point(currentPoint.X * horizontalScale, 0);
-                }
-                else
-                {
-                    lastVertex = new Point(currentPoint.X * horizontalScale, map.GetLength(1) * verticalScale);
-                }
+                Point lastVertex = GetSingleNeighborStartPoint(currentPoint, map, horizontalScale, verticalScale);
+                //lastVertex = new Point(currentPoint.X, currentPoint.Y);
+                //if (currentPoint.X < 1)
+                //{
+                //    lastVertex = new Point(0, currentPoint.Y * verticalScale);
+                //}
+                //else if (currentPoint.X > map.GetLength(0) - 2)
+                //{
+                //    lastVertex = new Point(map.GetLength(0) * horizontalScale, currentPoint.Y * verticalScale);
+                //}
+                //else if (currentPoint.Y < 1)
+                //{
+                //    lastVertex = new Point(currentPoint.X * horizontalScale, 0);
+                //}
+                //else
+                //{
+                //    lastVertex = new Point(currentPoint.X * horizontalScale, map.GetLength(1) * verticalScale);
+                //}
                 connectedPoints.Add(lastVertex);
                 connectedPoints.AddRange(GetPoints(currentPoint, lastVertex, map, horizontalScale, verticalScale));
                 lastVertex = connectedPoints[connectedPoints.Count - 1];
@@ -900,10 +908,10 @@ namespace MapGenerator
                 connectedPoints.Clear();
             }
             
-            if (DrawGridLines)
+            if (DrawGridLines && MapWidth > GridLineWidth && MapHeight > GridLineHeight)
             {
                 Pen gridPen = new Pen(Color.Black, linePen.Width / 2);
-                int[,] aliveGridCells = new int[MapWidth / GridLineWidth, MapHeight / GridLineHeight];
+                int[,] aliveGridCells = new int[Convert.ToInt32(1.0f * MapWidth / GridLineWidth), Convert.ToInt32(1.0f * MapHeight / GridLineHeight)];
                 for (int i = 0; i < map.GetLength(0); i++)
                 {
                     for (int j = 0; j < map.GetLength(1); j++)
@@ -2075,6 +2083,159 @@ namespace MapGenerator
             }
         }
 
+        private Point GetSingleNeighborStartPoint(Point currentPoint, int[,] map, int horizontalScale, int verticalScale)
+        {
+            int halfHorizontal = (int)(0.5f * horizontalScale);
+            int halfVertical = (int)(0.5f * verticalScale);
+            int x = currentPoint.X * horizontalScale;
+            int y = currentPoint.Y * verticalScale;
+            int wallDirections = GetAdjacentWalls(map, currentPoint.X, currentPoint.Y, 0);
+
+            bool northWall = (wallDirections & (int)Direction.NORTH) > 0;
+            bool eastWall = (wallDirections & (int)Direction.EAST) > 0;
+            bool southWall = (wallDirections & (int)Direction.SOUTH) > 0;
+            bool westWall = (wallDirections & (int)Direction.WEST) > 0;
+
+            if (!northWall && eastWall && southWall && !westWall)
+            {
+                // Wall right and below, so make a corner
+                if (currentPoint.X == 0 || currentPoint.Y == 0)
+                    return new Point(x, y);
+                else
+                    return new Point(x + horizontalScale, y + verticalScale);
+            }
+            else if (northWall && eastWall && !southWall && !westWall)
+            {
+                // Wall right and above, so make a corner
+                if (currentPoint.X == 0)
+                    return new Point(x, y + verticalScale);
+                else
+                    return new Point(x + horizontalScale, y);
+            }
+            else if (northWall && !eastWall && !southWall && westWall)
+            {
+                // Wall left and above, so make a corner
+                if (currentPoint.X == 0 || currentPoint.Y == 0)
+                    return new Point(x, y);
+                else
+                    return new Point(x + horizontalScale, y + verticalScale);
+            }
+            else if (!northWall && !eastWall && southWall && westWall)
+            {
+                // Wall left and below, so make a corner
+                if (currentPoint.X == 0)
+                    return new Point(x, y + verticalScale);
+                else
+                    return new Point(x + horizontalScale, y);
+            }
+            else if (!northWall && !eastWall && southWall && !westWall)
+            {
+                // Wall only below, make a small corner
+                //if (currentPoint.Y == 0)
+                //    return new Point(x + horizontalScale, y);
+                //else
+                //    return new Point(x, y);
+                Console.WriteLine("Error in start vertex");
+                return new Point();
+            }
+            else if (!northWall && eastWall && !southWall && !westWall)
+            {
+                // Wall only right, make a small corner
+                //if (currentPoint.X == 0)
+                //    return new Point(x + horizontalScale, y + verticalScale);
+                //else
+                //    return new Point(x + horizontalScale, y);
+                Console.WriteLine("Error in start vertex");
+                return new Point();
+            }
+            else if (northWall && !eastWall && !southWall && !westWall)
+            {
+                // Wall only above, make a small corner
+                //if (lastVertex.X == x && lastVertex.Y == y + verticalScale)
+                //    return new Point[] { new Point(x + halfHorizontal, y + halfVertical), new Point(x + horizontalScale, y + verticalScale) };
+                //else
+                //    return new Point[] { new Point(x + halfHorizontal, y + halfVertical), new Point(x, y + verticalScale) };
+                Console.WriteLine("Error in start vertex");
+                return new Point();
+            }
+            else if (!northWall && !eastWall && !southWall && westWall)
+            {
+                // Wall only left, make a small corner
+                //if (lastVertex.X == x && lastVertex.Y == y)
+                //    return new Point[] { new Point(x + halfHorizontal, y + halfVertical), new Point(x, y + verticalScale) };
+                //else
+                //    return new Point[] { new Point(x + halfHorizontal, y + halfVertical), new Point(x, y) };
+                Console.WriteLine("Error in start vertex");
+                return new Point();
+            }
+            else if (!northWall && eastWall && southWall && westWall)
+            {
+                // No wall above, make a straight line
+                if (currentPoint.X == 0)
+                    return new Point(x, y + verticalScale);
+                else
+                    return new Point(x + horizontalScale, y + verticalScale);
+            }
+            else if (northWall && eastWall && !southWall && westWall)
+            {
+                // No wall below, make a straight line
+                if (currentPoint.X == 0)
+                    return new Point(x, y);
+                else
+                    return new Point(x + horizontalScale, y);
+            }
+            else if (northWall && eastWall && southWall && !westWall)
+            {
+                // No Wall left, make a straight line
+                if (currentPoint.Y == 0)
+                    return new Point(x, y);
+                else
+                    return new Point(x, y + verticalScale);
+            }
+            else if (northWall && !eastWall && southWall && westWall)
+            {
+                // No wall right, make a straight line
+                if (currentPoint.Y == 0)
+                    return new Point(x + horizontalScale, y);
+                else
+                    return new Point(x + horizontalScale, y + verticalScale);
+            }
+            else if (northWall && !eastWall && southWall && !westWall)
+            {
+                // Walls only above and below, make a straight line right and left
+                //if (currentPoint.X)
+                //    return new Point[] { new Point(x, y + verticalScale) };
+                //else if (lastVertex.X == x && lastVertex.Y == y + verticalScale)
+                //    return new Point[] { new Point(x, y) };
+                //else if (lastVertex.X == x + horizontalScale && lastVertex.Y == y)
+                //    return new Point[] { new Point(x + horizontalScale, y + verticalScale) };
+                //else
+                //    return new Point[] { new Point(x + horizontalScale, y) };
+                Console.WriteLine("Error in start vertex");
+                return new Point();
+            }
+            else if (!northWall && eastWall && !southWall && westWall)
+            {
+                // Walls only right and left, make a straight line above and below
+                //if (cameFrom == Direction.NORTH || cameFrom == Direction.WEST)
+                //if (lastVertex.X == x && lastVertex.Y == y)
+                //    return new Point[] { new Point(x + horizontalScale, y) };
+                //else if (lastVertex.X == x + horizontalScale && lastVertex.Y == y)
+                //    return new Point[] { new Point(x, y) };
+                //else if (lastVertex.X == x && lastVertex.Y == y + verticalScale)
+                //    return new Point[] { new Point(x + horizontalScale, y + verticalScale) };
+                //else
+                //    return new Point[] { new Point(x, y + verticalScale) };
+                Console.WriteLine("Error in start vertex");
+                return new Point();
+            }
+            else
+            {
+                Console.WriteLine("Error in start vertex");
+                return new Point();
+            }
+        }
+
         private Point[] GetPoints(Point currentPoint, Point lastVertex, int[,] map, int horizontalScale, int verticalScale)
         {
             //Direction cameFrom;
@@ -2327,14 +2488,38 @@ namespace MapGenerator
         {
             MazeNode[,] mazeNodes = GenerateMazeNodes(startingPoint, mazeRows, mazeColumns);
             int[,] maze = new int[mapWidth, mapHeight];
-            int[,] test = new int[mapWidth, mapHeight];
-            int edgeBuffer = PathWidth * 2;
-            int maxPerturb = PathWidth * 4;
+            int xEdgeBuffer = PathWidth * mapWidth / (20 * (mazeColumns + 1));
+            int yEdgeBuffer = PathWidth * mapHeight / (20 * (mazeRows + 1));
+            int maxXPerturb = PathWidth * mapWidth / (10 * (mazeColumns + 1));
+            int maxYPerturb = PathWidth * mapHeight / (10 * (mazeRows + 1));
             int cellHalfWidth = mapWidth / (2 * mazeRows);
             int cellHalfHeight = mapHeight / (2 * mazeColumns);
+            int[,] test = new int[mapWidth, mapHeight];
+            for (int i = 0; i < mazeNodes.GetLength(0); i++)
+            {
+                for (int j = 0; j < mazeNodes.GetLength(1); j++)
+                {
+                    foreach (Direction d in mazeNodes[i, j].connections.Keys)
+                    {
+                        // Skip connections to the north or west, so we don't duplicate our paths
+                        if (d == Direction.SOUTH || d == Direction.EAST)
+                        {
+                            bool horizontal = d == Direction.EAST;
+                            int cellSize = horizontal ? cellHalfWidth * 2 : cellHalfHeight * 2;
+                            for (int k = 0; k < cellSize; k++)
+                            {
+                                if (horizontal)
+                                    test[i * cellHalfWidth * 2 + k, j * cellHalfHeight * 2] = 1;
+                                else
+                                    test[i * cellHalfWidth * 2, j * cellHalfHeight * 2 + k] = 1;
+                            }
+                        }
+                    }
+                }
+            }
+            DebugWriteToTexture(test, _pixelsPerMapUnit, _pixelsPerMapUnit);
             ScaleMazeNodes(ref startingPoint, mazeNodes, mapWidth, mapHeight);
-
-            PerturbNodes(ref startingPoint, mazeNodes, maxPerturb, mapWidth, mapHeight, edgeBuffer, cellHalfWidth, cellHalfHeight);
+            PerturbNodes(ref startingPoint, mazeNodes, maxXPerturb, maxYPerturb, mapWidth, mapHeight, xEdgeBuffer, yEdgeBuffer, cellHalfWidth, cellHalfHeight);
 
             for (int i = 0; i < mazeNodes.GetLength(0); i++)
             {
@@ -2345,13 +2530,13 @@ namespace MapGenerator
                     {
                         // If we are on the west side
                         if (i == 0)
-                            AddRandomWalkPath(maze, mazeNodes[i, j].position, new Vector2i(0, mazeNodes[i, j].position.y), i, j, cellHalfWidth * 2, edgeBuffer, true);
+                            AddRandomWalkPath(maze, mazeNodes[i, j].position, new Vector2i(0, mazeNodes[i, j].position.y), i, j, cellHalfWidth * 2, xEdgeBuffer, yEdgeBuffer, true);
                         else if (i == mazeNodes.GetLength(0) - 1) // East side
-                            AddRandomWalkPath(maze, mazeNodes[i, j].position, new Vector2i(maze.GetLength(0) - 1, mazeNodes[i, j].position.y), i, j, cellHalfWidth * 2, edgeBuffer, true);
+                            AddRandomWalkPath(maze, mazeNodes[i, j].position, new Vector2i(maze.GetLength(0) - 1, mazeNodes[i, j].position.y), i, j, cellHalfWidth * 2, xEdgeBuffer, yEdgeBuffer, true);
                         else if (j == 0) // North side
-                            AddRandomWalkPath(maze, mazeNodes[i, j].position, new Vector2i(mazeNodes[i, j].position.x, 0), i, j, cellHalfHeight * 2, edgeBuffer, false);
+                            AddRandomWalkPath(maze, mazeNodes[i, j].position, new Vector2i(mazeNodes[i, j].position.x, 0), i, j, cellHalfHeight * 2, xEdgeBuffer, yEdgeBuffer, false);
                         else // South side
-                            AddRandomWalkPath(maze, mazeNodes[i, j].position, new Vector2i(mazeNodes[i, j].position.x, maze.GetLength(1) - 1), i, j, cellHalfHeight * 2, edgeBuffer, false);
+                            AddRandomWalkPath(maze, mazeNodes[i, j].position, new Vector2i(mazeNodes[i, j].position.x, maze.GetLength(1) - 1), i, j, cellHalfHeight * 2, xEdgeBuffer, yEdgeBuffer, false);
                     }
 
                     foreach (Direction d in mazeNodes[i, j].connections.Keys)
@@ -2361,7 +2546,7 @@ namespace MapGenerator
                         {
                             bool horizontal = d == Direction.EAST;
                             int cellSize = horizontal ? cellHalfWidth * 2 : cellHalfHeight * 2;
-                            AddRandomWalkPath(maze, mazeNodes[i, j].position, mazeNodes[i, j].connections[d].position, i, j, cellSize, edgeBuffer, horizontal);
+                            AddRandomWalkPath(maze, mazeNodes[i, j].position, mazeNodes[i, j].connections[d].position, i, j, cellSize, xEdgeBuffer, yEdgeBuffer, horizontal);
                         }
                     }
 
@@ -2393,9 +2578,7 @@ namespace MapGenerator
                 }
             }
             List<MazeNode> activeList = new List<MazeNode>();
-
-            //int startSide = UnityEngine.Random.Range(0, 4);
-
+            
             //Vector2i startingCell;
             MazeNode startingNode;
             
@@ -2631,7 +2814,7 @@ namespace MapGenerator
             }
         }
 
-        private void PerturbNodes(ref Vector2i startingPoint, MazeNode[,] nodes, int maxPerturb, int maxWidth, int maxHeight, int edgeBuffer, int cellHalfWidth, int cellHalfHeight)
+        private void PerturbNodes(ref Vector2i startingPoint, MazeNode[,] nodes, int maxXPerturb, int maxYPerturb, int maxWidth, int maxHeight, int xEdgeBuffer, int yEdgeBuffer, int cellHalfWidth, int cellHalfHeight)
         {
             bool perturbedStartPoint = false;
 
@@ -2640,27 +2823,27 @@ namespace MapGenerator
                 for (int j = 0; j < nodes.GetLength(1); j++)
                 {
                     //Vector2i perturbAmount = new Vector2i(UnityEngine.Random.Range(-maxPerturb, maxPerturb), UnityEngine.Random.Range(-maxPerturb, maxPerturb));
-                    Vector2i perturbAmount = new Vector2i(_rng.Next(-maxPerturb, maxPerturb), _rng.Next(-maxPerturb, maxPerturb));
+                    Vector2i perturbAmount = new Vector2i(_rng.Next(-maxXPerturb, maxXPerturb), _rng.Next(-maxYPerturb, maxYPerturb));
                     Vector2i oldPosition = new Vector2i(nodes[i, j].position.x, nodes[i, j].position.y);
                     nodes[i, j].position += perturbAmount;
 
                     // Clamp node position
-                    if (nodes[i, j].position.x > maxWidth - edgeBuffer)
-                        nodes[i, j].position.x = maxWidth - edgeBuffer;
-                    else if (nodes[i, j].position.x < edgeBuffer)
-                        nodes[i, j].position.x = edgeBuffer;
-                    else if (cellHalfWidth > edgeBuffer && nodes[i, j].position.x > oldPosition.x + cellHalfWidth - edgeBuffer)
-                        nodes[i, j].position.x = oldPosition.x + cellHalfWidth - edgeBuffer;
-                    else if (cellHalfWidth > edgeBuffer && nodes[i, j].position.x < oldPosition.x - cellHalfWidth + edgeBuffer)
-                        nodes[i, j].position.x = oldPosition.x - cellHalfWidth + edgeBuffer;
-                    if (nodes[i, j].position.y > maxHeight - edgeBuffer)
-                        nodes[i, j].position.y = maxHeight - edgeBuffer;
-                    else if (nodes[i, j].position.y < edgeBuffer)
-                        nodes[i, j].position.y = edgeBuffer;
-                    else if (cellHalfHeight > edgeBuffer && nodes[i, j].position.y > oldPosition.y + cellHalfHeight - edgeBuffer)
-                        nodes[i, j].position.y = oldPosition.y + cellHalfHeight - edgeBuffer;
-                    else if (cellHalfHeight > edgeBuffer && nodes[i, j].position.y < oldPosition.y - cellHalfHeight + edgeBuffer)
-                        nodes[i, j].position.y = oldPosition.y - cellHalfHeight + edgeBuffer;
+                    if (nodes[i, j].position.x > maxWidth - xEdgeBuffer)
+                        nodes[i, j].position.x = maxWidth - xEdgeBuffer;
+                    else if (nodes[i, j].position.x < xEdgeBuffer)
+                        nodes[i, j].position.x = xEdgeBuffer;
+                    else if (cellHalfWidth > xEdgeBuffer && nodes[i, j].position.x > oldPosition.x + cellHalfWidth - xEdgeBuffer)
+                        nodes[i, j].position.x = oldPosition.x + cellHalfWidth - xEdgeBuffer;
+                    else if (cellHalfWidth > xEdgeBuffer && nodes[i, j].position.x < oldPosition.x - cellHalfWidth + xEdgeBuffer)
+                        nodes[i, j].position.x = oldPosition.x - cellHalfWidth + xEdgeBuffer;
+                    if (nodes[i, j].position.y > maxHeight - yEdgeBuffer)
+                        nodes[i, j].position.y = maxHeight - yEdgeBuffer;
+                    else if (nodes[i, j].position.y < yEdgeBuffer)
+                        nodes[i, j].position.y = yEdgeBuffer;
+                    else if (cellHalfHeight > yEdgeBuffer && nodes[i, j].position.y > oldPosition.y + cellHalfHeight - yEdgeBuffer)
+                        nodes[i, j].position.y = oldPosition.y + cellHalfHeight - yEdgeBuffer;
+                    else if (cellHalfHeight > yEdgeBuffer && nodes[i, j].position.y < oldPosition.y - cellHalfHeight + yEdgeBuffer)
+                        nodes[i, j].position.y = oldPosition.y - cellHalfHeight + yEdgeBuffer;
 
                     if (!perturbedStartPoint && startingPoint.x == oldPosition.x && startingPoint.y == oldPosition.y)
                     {
@@ -3000,6 +3183,7 @@ namespace MapGenerator
                 //directionsToGet.Add(cur);
                 //if (cur == Direction.North || cur == Direction.East || cur == Direction.South || cur == Direction.West)
                 cardinalDirectionsToGet.Add(cur);
+                cardinalDirectionsToGet.Remove(Direction.error);
                 //else
                 //    diagonalDirectionsToGet.Add(cur);
 
@@ -3126,7 +3310,7 @@ namespace MapGenerator
         /// <param name="startPoint"></param>
         /// <param name="endPoint"></param>
         /// <returns></returns>
-        private int[,] AddRandomWalkPath(int[,] map, Vector2i startPoint, Vector2i endPoint, int columnNumber, int rowNumber, int cellSize, int edgeBuffer, bool horizontalMovement)
+        private int[,] AddRandomWalkPath(int[,] map, Vector2i startPoint, Vector2i endPoint, int columnNumber, int rowNumber, int cellSize, int xEdgeBuffer, int yEdgeBuffer, bool horizontalMovement)
         {
             int count = 0;
 
@@ -3138,13 +3322,13 @@ namespace MapGenerator
 
             if (horizontalMovement)
             {
-                maxEdgeDistance = rowNumber * cellSize + cellSize - edgeBuffer;
-                minEdgeDistance = rowNumber * cellSize + edgeBuffer;
+                maxEdgeDistance = rowNumber * cellSize + cellSize - xEdgeBuffer;
+                minEdgeDistance = rowNumber * cellSize + xEdgeBuffer;
             }
             else
             {
-                maxEdgeDistance = columnNumber * cellSize + cellSize - edgeBuffer;
-                minEdgeDistance = columnNumber * cellSize + edgeBuffer;
+                maxEdgeDistance = columnNumber * cellSize + cellSize - yEdgeBuffer;
+                minEdgeDistance = columnNumber * cellSize + yEdgeBuffer;
             }
 
             Vector2i prevStartPoint = new Vector2i(startPoint.x, startPoint.y);

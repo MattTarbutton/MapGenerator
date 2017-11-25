@@ -55,7 +55,7 @@ namespace MapGenerator
             int rngSeed = 0;
             foreach (char c in SeedTextBox.Text)
             {
-                rngSeed += (int)char.GetNumericValue(c);
+                rngSeed += char.ConvertToUtf32(c.ToString(), 0);
             }
             displayLevel = new Level()
             {
@@ -142,7 +142,7 @@ namespace MapGenerator
             int newValue = 0;
             foreach (char c in SeedTextBox.Text)
             {
-                newValue += (int)char.GetNumericValue(c);
+                newValue += char.ConvertToUtf32(c.ToString(), 0);
             }
             if (displayLevel != null)
             {
@@ -477,6 +477,18 @@ namespace MapGenerator
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
 
+        }
+
+        private void RandomizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            string newSeed = "";
+            Random rng = new Random();
+            for (int i = 0; i < 8; i++)
+            {
+                newSeed += char.ConvertFromUtf32(rng.Next(33, 127));
+            }
+
+            SeedTextBox.Text = newSeed;
         }
     }
 }

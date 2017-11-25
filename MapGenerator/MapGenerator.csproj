@@ -101,5 +101,14 @@
   <ItemGroup>
     <Resource Include="Resources\SaveStatusBar1_16x.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\rolling-dices.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\dice-twenty-faces-twenty.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\SmallDieCast.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

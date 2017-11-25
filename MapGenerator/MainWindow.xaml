@@ -23,7 +23,12 @@
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Margin="0,2,0,0">Seed:</TextBlock>
-                    <TextBox Grid.Column="1" Width="100" x:Name="SeedTextBox" TabIndex="1" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="SeedTextBox_TextChanged" GotKeyboardFocus="SeedTextBox_GotKeyboardFocus" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button x:Name="RandomizeButton" Grid.Column="1" Height="19" Margin="0,0,5,0" Click="RandomizeButton_Click">
+                            <Image Source="Resources/SmallDieCast.png"/>
+                        </Button>
+                        <TextBox Grid.Column="1" Width="100" x:Name="SeedTextBox" TabIndex="1" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="SeedTextBox_TextChanged" GotKeyboardFocus="SeedTextBox_GotKeyboardFocus" />
+                    </StackPanel>
                 </Grid>
             </GroupBox>
             <GroupBox Header="Maze" Margin="0,0,5,0">

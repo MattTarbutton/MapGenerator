@@ -63,9 +63,39 @@ namespace MapGenerator.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap dice_twenty_faces_twenty {
+            get {
+                object obj = ResourceManager.GetObject("dice_twenty_faces_twenty", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap rolling_dices {
+            get {
+                object obj = ResourceManager.GetObject("rolling_dices", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap SaveStatusBar1_16x {
             get {
                 object obj = ResourceManager.GetObject("SaveStatusBar1_16x", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SmallDieCast {
+            get {
+                object obj = ResourceManager.GetObject("SmallDieCast", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
