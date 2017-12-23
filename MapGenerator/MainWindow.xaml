@@ -4,12 +4,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MapGenerator"
+        xmlns:wpg="clr-namespace:System.Windows.Controls"
         mc:Ignorable="d"
-        Title="MainWindow" Height="525" Width="800" MinHeight="525" MinWidth="600" WindowStyle="ToolWindow" Closing="Window_Closing">
+        Title="MainWindow" Height="550" Width="800" MinHeight="525" MinWidth="600" WindowStyle="ToolWindow" Closing="Window_Closing" SizeChanged="Window_SizeChanged">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="275"/>
             <ColumnDefinition Width="*"/>
+            <ColumnDefinition x:Name="PropertyWindowColumn" Width="200"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -31,19 +33,26 @@
                     </StackPanel>
                 </Grid>
             </GroupBox>
-            <GroupBox Header="Maze" Margin="0,0,5,0">
+            <GroupBox Header="Map Type" Margin="0,0,5,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="75"/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Orientation="Vertical">
-                        <TextBlock Margin="0,2,0,0">Rows:</TextBlock>
-                        <TextBlock Margin="0,2,0,0">Columns:</TextBlock>
+                        <TextBlock Margin="0,4,0,0">Map Type:</TextBlock>
+                        <TextBlock x:Name="MazeRowsTextBlock" Margin="0,2,0,0">Rows:</TextBlock>
+                        <TextBlock x:Name="MazeColumnsTextBlock" Margin="0,2,0,0">Columns:</TextBlock>
+                        <TextBlock x:Name="PathWidthTextBlock" Margin="0,2,0,0">Path Width:</TextBlock>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Vertical">
-                        <TextBox Width="100" x:Name="MazeRowsTextBox" TabIndex="2" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="MazeRowsTextBox_TextChanged" GotKeyboardFocus="MazeRowsTextBox_GotKeyboardFocus" />
-                        <TextBox Width="100" x:Name="MazeColumnsTextBox" TabIndex="3" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="MazeColumnsTextBox_TextChanged" GotKeyboardFocus="MazeColumnsTextBox_GotKeyboardFocus" />
+                        <ComboBox Width="100" x:Name="MapTypeComboBox" TabIndex="2" HorizontalAlignment="Right"
+                                  SelectedValue="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}, Path=SelectedMapType, Mode=TwoWay}"
+                                  ItemsSource="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}, Path=MapTypes}" 
+                                  SelectionChanged="MapTypeComboBox_SelectionChanged"/>
+                        <TextBox Width="100" x:Name="MazeRowsTextBox" TabIndex="3" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="MazeRowsTextBox_TextChanged" GotKeyboardFocus="MazeRowsTextBox_GotKeyboardFocus" />
+                        <TextBox Width="100" x:Name="MazeColumnsTextBox" TabIndex="4" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="MazeColumnsTextBox_TextChanged" GotKeyboardFocus="MazeColumnsTextBox_GotKeyboardFocus" />
+                        <TextBox Width="100" x:Name="PathWidthTextBox" TabIndex="5" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="PathWidthTextBox_TextChanged" GotKeyboardFocus="PathWidthTextBox_GotKeyboardFocus" />
                     </StackPanel>
                 </Grid>
             </GroupBox>
@@ -58,14 +67,12 @@
                         <TextBlock Margin="0,2,0,0">Death Limit:</TextBlock>
                         <TextBlock Margin="0,2,0,0">Path Start Seeded Percent:</TextBlock>
                         <TextBlock Margin="0,2,0,0">Simulation Steps:</TextBlock>
-                        <TextBlock Margin="0,2,0,0">Path Width:</TextBlock>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Vertical">
-                        <TextBox Width="100" x:Name="BirthLimitTextBox" TabIndex="4" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="BirthLimitTextBox_TextChanged" GotKeyboardFocus="BirthLimitTextBox_GotKeyboardFocus" />
-                        <TextBox Width="100" x:Name="DeathLimitTextBox" TabIndex="5" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="DeathLimitTextBox_TextChanged" GotKeyboardFocus="DeathLimitTextBox_GotKeyboardFocus" />
-                        <TextBox Width="100" x:Name="ChanceToStartAliveTextBox" TabIndex="6" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="ChanceToStartAliveTextBox_TextChanged" GotKeyboardFocus="ChanceToStartAliveTextBox_GotKeyboardFocus" />
-                        <TextBox Width="100" x:Name="SimStepsTextBox" TabIndex="7" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="SimStepsTextBox_TextChanged" GotKeyboardFocus="SimStepsTextBox_GotKeyboardFocus" />
-                        <TextBox Width="100" x:Name="PathWidthTextBox" TabIndex="8" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="PathWidthTextBox_TextChanged" GotKeyboardFocus="PathWidthTextBox_GotKeyboardFocus" />
+                        <TextBox Width="100" x:Name="BirthLimitTextBox" TabIndex="6" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="BirthLimitTextBox_TextChanged" GotKeyboardFocus="BirthLimitTextBox_GotKeyboardFocus" />
+                        <TextBox Width="100" x:Name="DeathLimitTextBox" TabIndex="7" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="DeathLimitTextBox_TextChanged" GotKeyboardFocus="DeathLimitTextBox_GotKeyboardFocus" />
+                        <TextBox Width="100" x:Name="ChanceToStartAliveTextBox" TabIndex="8" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="ChanceToStartAliveTextBox_TextChanged" GotKeyboardFocus="ChanceToStartAliveTextBox_GotKeyboardFocus" />
+                        <TextBox Width="100" x:Name="SimStepsTextBox" TabIndex="9" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="SimStepsTextBox_TextChanged" GotKeyboardFocus="SimStepsTextBox_GotKeyboardFocus" />
                     </StackPanel>
                 </Grid>
             </GroupBox>
@@ -80,8 +87,8 @@
                         <TextBlock Margin="0,2,0,0">Map Height:</TextBlock>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Vertical">
-                        <TextBox Width="100" x:Name="MapWidthTextBox" TabIndex="9" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="MapWidthTextBox_TextChanged" GotKeyboardFocus="MapWidthTextBox_GotKeyboardFocus" />
-                        <TextBox Width="100" x:Name="MapHeightTextBox" TabIndex="10" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="MapHeightTextBox_TextChanged" GotKeyboardFocus="MapHeightTextBox_GotKeyboardFocus" />
+                        <TextBox Width="100" x:Name="MapWidthTextBox" TabIndex="10" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="MapWidthTextBox_TextChanged" GotKeyboardFocus="MapWidthTextBox_GotKeyboardFocus" />
+                        <TextBox Width="100" x:Name="MapHeightTextBox" TabIndex="11" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="MapHeightTextBox_TextChanged" GotKeyboardFocus="MapHeightTextBox_GotKeyboardFocus" />
                     </StackPanel>
                 </Grid>
             </GroupBox>
@@ -96,25 +103,24 @@
                         <TextBlock Margin="0,2,0,0">Size Multiplier:</TextBlock>
                         <TextBlock Margin="0,2,0,0">Image Size:</TextBlock>
                         <TextBlock Margin="0,2,0,0">Image Height:</TextBlock>
-                        <CheckBox x:Name="DrawSmoothCheckBox" Margin="0,2,0,0" Content="Smooth Lines" Click="DrawSmoothCheckBox_Click" IsChecked="True"/>
-                        <CheckBox x:Name="DrawGridLinesCheckBox" Margin="0,2,0,0" Content="Draw Grid Lines" Click="DrawGridLinesCheckBox_Click" IsChecked="True"/>
+                        <CheckBox x:Name="DrawSmoothCheckBox" Margin="0,2,0,0" TabIndex="14" Content="Smooth Lines" Click="DrawSmoothCheckBox_Click" IsChecked="True"/>
+                        <CheckBox x:Name="DrawGridLinesCheckBox" Margin="0,2,0,0" TabIndex="15" Content="Draw Grid Lines" Click="DrawGridLinesCheckBox_Click" IsChecked="True"/>
                         <TextBlock x:Name="GridCellWidthTextBlock" Margin="0,2,0,0">Grid Cell Width:</TextBlock>
                         <TextBlock x:Name="GridCellHeightTextBlock" Margin="0,2,0,0">Grid Cell Height:</TextBlock>
                     </StackPanel>
-                    
                     <StackPanel Grid.Column="1" Orientation="Vertical">
-                        <TextBox Width="100" x:Name="LineSizeTextBox" TabIndex="11" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="LineSizeTextBox_TextChanged" GotKeyboardFocus="LineSizeTextBox_GotKeyboardFocus"/>
-                        <TextBox Width="100" x:Name="SizeMultiplierTextBox" TabIndex="12" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="SizeMultiplierTextBox_TextChanged" GotKeyboardFocus="SizeMultiplierTextBox_GotKeyboardFocus" />
+                        <TextBox Width="100" x:Name="LineSizeTextBox" TabIndex="12" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="LineSizeTextBox_TextChanged" GotKeyboardFocus="LineSizeTextBox_GotKeyboardFocus"/>
+                        <TextBox Width="100" x:Name="SizeMultiplierTextBox" TabIndex="13" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="SizeMultiplierTextBox_TextChanged" GotKeyboardFocus="SizeMultiplierTextBox_GotKeyboardFocus" />
                         <TextBlock Width="100" x:Name="ImageWidthTextBox" TextAlignment="Right" HorizontalAlignment="Right"/>
                         <TextBlock Width="100" x:Name="ImageHeightTextBox" TextAlignment="Right" HorizontalAlignment="Right"/>
-                        <TextBox Width="100" x:Name="GridCellWidthTextBox" Margin="0,40,0,0" TabIndex="13" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridCellWidthTextBox_TextChanged" GotKeyboardFocus="GridCellWidthTextBox_GotKeyboardFocus" />
-                        <TextBox Width="100" x:Name="GridCellHeightTextBox" TabIndex="14" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridCellHeightTextBox_TextChanged" GotKeyboardFocus="GridCellHeightTextBox_GotKeyboardFocus" />
+                        <TextBox Width="100" x:Name="GridCellWidthTextBox" Margin="0,40,0,0" TabIndex="16" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridCellWidthTextBox_TextChanged" GotKeyboardFocus="GridCellWidthTextBox_GotKeyboardFocus" />
+                        <TextBox Width="100" x:Name="GridCellHeightTextBox" TabIndex="17" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridCellHeightTextBox_TextChanged" GotKeyboardFocus="GridCellHeightTextBox_GotKeyboardFocus" />
                     </StackPanel>
                 </Grid>
             </GroupBox>
         </StackPanel>
         <StackPanel Grid.Row ="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,10">
-            <Button x:Name="RestoreDefaultsButton" Margin="0,0,5,0" Width="100" Height="20" Content="Restore Defaults" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="RestoreDefaultsButton_Click"/>
+            <Button x:Name="RestoreDefaultsButton" Margin="0,0,5,0" TabIndex="18" Width="100" Height="20" Content="Restore Defaults" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="RestoreDefaultsButton_Click"/>
             
         </StackPanel>
         <Border Grid.RowSpan="2" HorizontalAlignment="Right" BorderThickness="0,0,1,0">
@@ -122,9 +128,23 @@
                 <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ActiveBorderColorKey}}"/>
             </Border.BorderBrush>
         </Border>
-        <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-            <!--<Canvas x:Name="MapCanvas" Width="{Binding ActualWidth, ElementName=MapImage}" Height="{Binding ActualHeight, ElementName=MapImage}" >-->
-            <Canvas x:Name="MapCanvas" Width="Auto" Height="Auto" >
+        <ScrollViewer x:Name="MapScrollViewer" Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Focusable="False">
+            <Canvas x:Name="MapCanvas" Width="Auto" Height="Auto" SizeChanged="MapCanvas_SizeChanged" MouseMove="MapCanvas_MouseMove" MouseDown="MapCanvas_MouseDown" MouseLeftButtonUp="MapCanvas_MouseLeftButtonUp" KeyDown="MapCanvas_KeyDown" Focusable="True">
+                <Canvas.Background>
+                    <VisualBrush Stretch="Uniform"  >
+                        <VisualBrush.Visual>
+                            <Image x:Name="MapImage" HorizontalAlignment="Right" VerticalAlignment="Top" SizeChanged="MapImage_SizeChanged"/>
+                        </VisualBrush.Visual>
+                    </VisualBrush>
+                </Canvas.Background>
+                <Canvas.ContextMenu>
+                    <ContextMenu x:Name="AddNodeContextMenu">
+                        <MenuItem x:Name="AddNodeMenuItem" Header="Add Node" Click="AddNodeMenuItem_Click"/>
+                    </ContextMenu>
+                </Canvas.ContextMenu>
+                <!--<local:MapNodeControl x:Name="testControl" Width="20" Height="20"/>-->
+            </Canvas>
+            <!--<Canvas x:Name="MapCanvas" Width="Auto" Height="Auto" >
                 <Canvas.Background>
                     <VisualBrush Stretch="Uniform"  >
                         <VisualBrush.Visual>
@@ -132,14 +152,27 @@
                         </VisualBrush.Visual>
                     </VisualBrush>
                 </Canvas.Background>
-            </Canvas>
+                <local:MapNodeControl x:Name="testControl" Width="20" Height="20"/>
+            </Canvas>-->
         </ScrollViewer>
-        <CheckBox x:Name="ZoomToFitCheckBox" Grid.Column="1" Grid.Row="1" Margin="5,5,5,0" HorizontalAlignment="Right" VerticalAlignment="Top" IsChecked="True" Click="ZoomToFitCheckBox_Click">Zoom to Fit</CheckBox>
-        <Button x:Name="SaveButton" Grid.Column="1" Grid.Row="1" Width="100" Height="20" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5,5" Click="SaveButton_Click">
+        <CheckBox x:Name="ZoomToFitCheckBox" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" Margin="5,5,5,0" TabIndex="19" HorizontalAlignment="Right" VerticalAlignment="Top" IsChecked="True" Click="ZoomToFitCheckBox_Click">Zoom to Fit</CheckBox>
+        <Button x:Name="SaveButton" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" Width="100" Height="20" TabIndex="20" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5,5" Click="SaveButton_Click">
             <StackPanel Orientation="Horizontal">
                 <Image Source="Resources/SaveStatusBar1_16x.png" Margin="0,0,5,0"></Image>
                 <TextBlock>Save Image</TextBlock>
             </StackPanel>
         </Button>
+        <!--<Line Grid.Column="2" Stroke="Gray" Stretch="Fill" HorizontalAlignment="Left" Y2="1" StrokeThickness="1"></Line>-->
+        <Border Grid.Column="2" HorizontalAlignment="Left" BorderThickness="0,0,1,0">
+            <Border.BorderBrush>
+                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ActiveBorderColorKey}}"/>
+            </Border.BorderBrush>
+        </Border>
+        <TextBlock Grid.Column="2" Margin="10,10,10,0" Width="170" TextWrapping="Wrap">Right click in the grid to add nodes, right click on nodes to add connections to nodes.</TextBlock>
+        <wpg:WpfPropertyGrid x:Name="PropertyGrid1" Grid.Column="2" Height="300"
+        Margin="0,0,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" 
+        HelpVisible="True" 
+        ToolbarVisible="False"
+        PropertySort="Categorized" />
     </Grid>
 </Window>

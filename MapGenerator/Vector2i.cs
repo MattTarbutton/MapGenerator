@@ -17,6 +17,18 @@ namespace MapGenerator
             this.y = y;
         }
 
+        public Vector2i(System.Drawing.Point point)
+        {
+            this.x = point.X;
+            this.y = point.Y;
+        }
+
+        public Vector2i(System.Windows.Point point)
+        {
+            this.x = (int)point.X;
+            this.y = (int)point.Y;
+        }
+
         public static Vector2i operator +(Vector2i vector1, Vector2i vector2)
         {
             return new Vector2i(vector1.x + vector2.x, vector1.y + vector2.y);

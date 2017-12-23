@@ -8,10 +8,10 @@ namespace MapGenerator
 {
     public struct Vector2
     {
-        public int x;
-        public int y;
+        public float x;
+        public float y;
 
-        public Vector2(int x, int y)
+        public Vector2(float x, float y)
         {
             this.x = x;
             this.y = y;
@@ -39,7 +39,7 @@ namespace MapGenerator
 
         public static Vector2 operator /(Vector2 vector, float factor)
         {
-            return new Vector2((int)(vector.x / factor), (int)(vector.y / factor));
+            return new Vector2(vector.x / factor, vector.y / factor);
         }
     }
 }

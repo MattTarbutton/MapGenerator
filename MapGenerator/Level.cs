@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace MapGenerator
     {
         public Bitmap tex;
         private int[,] _map;
-        private Vector2i _startPoint;
+        private Vector2i[] _startPoints;
         private int _mazeRows;
         public int MazeRows
         {
@@ -52,7 +53,6 @@ namespace MapGenerator
             get { return _chanceToStartAlive; }
             set { _chanceToStartAlive = value; }
         }
-        //private int _diagonalChance;
         private int _pathWidth;
         public int PathWidth
         {
@@ -113,7 +113,6 @@ namespace MapGenerator
             get { return _gridLineHeight; }
             set { _gridLineHeight = value; }
         }
-
         private int _rngSeed;
         public int RngSeed
         {
@@ -130,38 +129,7 @@ namespace MapGenerator
 
         public Level()
         {
-            //RegenerateLevel();
-
-            //Vector2 tileSize = wall.GetComponent<BoxCollider2D>().size;
-            //for (int i = 0; i < map.GetLength(0); i++)
-            //{
-            //    for (int j = 0; j < map.GetLength(1); j++)
-            //    {
-            //        if (map[i, j] == 0 && CountNeighborsNotOfValue(map, i, j, 0) > 0)
-            //        {
-            //            if (!IndexOnEdge(map, i, j) && map[i + 1, j] == 0 && map[i, j - 1] == 0 && map[i - 1, j] != 0 && map[i, j + 1] != 0)
-            //                Instantiate(corner, new Vector3(i * tileSize.x, j * tileSize.y), Quaternion.Euler(0, 0, 0));
-            //            else if (!IndexOnEdge(map, i, j) && map[i + 1, j] == 0 && map[i, j + 1] == 0 && map[i - 1, j] != 0 && map[i, j - 1] != 0)
-            //                Instantiate(corner, new Vector3(i * tileSize.x, j * tileSize.y), Quaternion.Euler(0, 0, 90));
-            //            else if (!IndexOnEdge(map, i, j) && map[i - 1, j] == 0 && map[i, j + 1] == 0 && map[i + 1, j] != 0 && map[i, j - 1] != 0)
-            //                Instantiate(corner, new Vector3(i * tileSize.x, j * tileSize.y), Quaternion.Euler(0, 0, 180));
-            //            else if (!IndexOnEdge(map, i, j) && map[i - 1, j] == 0 && map[i, j - 1] == 0 && map[i + 1, j] != 0 && map[i, j + 1] != 0)
-            //                Instantiate(corner, new Vector3(i * tileSize.x, j * tileSize.y), Quaternion.Euler(0, 0, 270));
-            //            else if (!IndexOnEdge(map, i, j) && map[i, j - 1] == 0 && map[i + 1, j] != 0 && map[i - 1, j] != 0 && map[i, j + 1] != 0)
-            //                Instantiate(smallCorner, new Vector3(i * tileSize.x, j * tileSize.y), Quaternion.Euler(0, 0, 0));
-            //            else if (!IndexOnEdge(map, i, j) && map[i + 1, j] == 0 && map[i - 1, j] != 0 && map[i, j + 1] != 0 && map[i, j - 1] != 0)
-            //                Instantiate(smallCorner, new Vector3(i * tileSize.x, j * tileSize.y), Quaternion.Euler(0, 0, 90));
-            //            else if (!IndexOnEdge(map, i, j) && map[i, j + 1] == 0 && map[i + 1, j] != 0 && map[i - 1, j] != 0 && map[i, j - 1] != 0)
-            //                Instantiate(smallCorner, new Vector3(i * tileSize.x, j * tileSize.y), Quaternion.Euler(0, 0, 180));
-            //            else if (!IndexOnEdge(map, i, j) && map[i - 1, j] == 0 && map[i + 1, j] != 0 && map[i, j + 1] != 0 && map[i, j - 1] != 0)
-            //                Instantiate(smallCorner, new Vector3(i * tileSize.x, j * tileSize.y), Quaternion.Euler(0, 0, 270));
-            //            else
-            //                Instantiate(wall, new Vector3(i * tileSize.x, j * tileSize.y), Quaternion.identity);
-            //        }
-            //        else if (map[i, j] == 0)
-            //            Instantiate(noColliderWall, new Vector3(i * tileSize.x, j * tileSize.y), Quaternion.identity);
-            //    }
-            //}
+            
         }
 
         public async void RegenerateLevel()
@@ -169,57 +137,133 @@ namespace MapGenerator
             _rng = new System.Random(_rngSeed);
             await Task.Run(() =>
             {
-                
-                    GenerateRandomWalkLevel();
-                //try
+                try
                 {
+                    GenerateRandomWalkLevel();
+
+                    //DebugWriteToTexture(_map, _pixelsPerMapUnit, _pixelsPerMapUnit);
                     if (DrawSmooth)
                     {
                         WriteToTexture(_map, _pixelsPerMapUnit, _pixelsPerMapUnit, true);
                     }
                     else
                     {
-                        //WriteToTexture(_map, _pixelsPerMapUnit, _pixelsPerMapUnit, false);
+                        WriteToTexture(_map, _pixelsPerMapUnit, _pixelsPerMapUnit, false);
                     }
                 }
-                //catch (Exception ex)
-                //{
-                //    Console.WriteLine(ex.ToString());
-                //    tex = new Bitmap(600, 600);
-                //    Graphics g = Graphics.FromImage(tex);
-                //    g.FillRectangle(System.Drawing.Brushes.White, 0, 0, 600, 600);
-                //    g.DrawImage(SystemIcons.Error.ToBitmap(), 300, 300, SystemIcons.Error.ToBitmap().Width * 2, SystemIcons.Error.ToBitmap().Height * 2);
-                //    Font stringFont = new Font(FontFamily.GenericMonospace, 36, FontStyle.Regular);
-                //    //g.DrawString("Something has gone wrong", stringFont, Brushes.Black, MapWidth * _pixelsPerMapUnit / 2 - 340, MapHeight * _pixelsPerMapUnit / 2 - 75);
-                //    g.DrawString("Invalid Parameters", stringFont, Brushes.Black, 45, 375);
-                //}
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    tex = new Bitmap(600, 600);
+                    Graphics g = Graphics.FromImage(tex);
+                    g.FillRectangle(System.Drawing.Brushes.White, 0, 0, 600, 600);
+                    g.DrawImage(SystemIcons.Error.ToBitmap(), 300, 300, SystemIcons.Error.ToBitmap().Width * 2, SystemIcons.Error.ToBitmap().Height * 2);
+                    Font stringFont = new Font(FontFamily.GenericMonospace, 36, FontStyle.Regular);
+                    //g.DrawString("Something has gone wrong", stringFont, Brushes.Black, MapWidth * _pixelsPerMapUnit / 2 - 340, MapHeight * _pixelsPerMapUnit / 2 - 75);
+                    g.DrawString("Invalid Parameters", stringFont, Brushes.Black, 45, 375);
+                }
 
                 OnLevelRegenerated?.Invoke();
             });
         }
 
+        public async void RegenerateLevel(MapNode[] nodes, Connection[] connections)
+        {
+            _rng = new System.Random(_rngSeed);
+            await Task.Run(() =>
+            {
+                try
+                {
+                    GenerateLevelFromNodes(nodes, connections);
+
+                    //DebugWriteToTexture(_map, _pixelsPerMapUnit, _pixelsPerMapUnit);
+                    if (DrawSmooth)
+                    {
+                        WriteToTexture(_map, _pixelsPerMapUnit, _pixelsPerMapUnit, true);
+                    }
+                    else
+                    {
+                        WriteToTexture(_map, _pixelsPerMapUnit, _pixelsPerMapUnit, false);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    tex = new Bitmap(600, 600);
+                    Graphics g = Graphics.FromImage(tex);
+                    g.FillRectangle(System.Drawing.Brushes.White, 0, 0, 600, 600);
+                    g.DrawImage(SystemIcons.Error.ToBitmap(), 300, 300, SystemIcons.Error.ToBitmap().Width * 2, SystemIcons.Error.ToBitmap().Height * 2);
+                    Font stringFont = new Font(FontFamily.GenericMonospace, 36, FontStyle.Regular);
+                    //g.DrawString("Something has gone wrong", stringFont, Brushes.Black, MapWidth * _pixelsPerMapUnit / 2 - 340, MapHeight * _pixelsPerMapUnit / 2 - 75);
+                    g.DrawString("Invalid Parameters", stringFont, Brushes.Black, 45, 375);
+                }
+
+                OnLevelRegenerated?.Invoke();
+            });
+        }
+
+        //public void RegenerateLevel(MapNode[] nodes, Connection[] connections)
+        //{
+        //    _rng = new System.Random(_rngSeed);
+        //    try
+        //    {
+        //        GenerateLevelFromNodes(nodes, connections);
+
+        //        //DebugWriteToTexture(_map, _pixelsPerMapUnit, _pixelsPerMapUnit);
+        //        if (DrawSmooth)
+        //        {
+        //            WriteToTexture(_map, _pixelsPerMapUnit, _pixelsPerMapUnit, true);
+        //        }
+        //        else
+        //        {
+        //            WriteToTexture(_map, _pixelsPerMapUnit, _pixelsPerMapUnit, false);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString());
+        //        tex = new Bitmap(600, 600);
+        //        Graphics g = Graphics.FromImage(tex);
+        //        g.FillRectangle(System.Drawing.Brushes.White, 0, 0, 600, 600);
+        //        g.DrawImage(SystemIcons.Error.ToBitmap(), 300, 300, SystemIcons.Error.ToBitmap().Width * 2, SystemIcons.Error.ToBitmap().Height * 2);
+        //        Font stringFont = new Font(FontFamily.GenericMonospace, 36, FontStyle.Regular);
+        //        //g.DrawString("Something has gone wrong", stringFont, Brushes.Black, MapWidth * _pixelsPerMapUnit / 2 - 340, MapHeight * _pixelsPerMapUnit / 2 - 75);
+        //        g.DrawString("Invalid Parameters", stringFont, Brushes.Black, 45, 375);
+        //    }
+
+        //    OnLevelRegenerated?.Invoke();
+        //}
+
         public int[,] GenerateRandomWalkLevel()
         {
-            _startPoint = GetRandomStartSide(_mazeRows, _mazeColumns);
+            _startPoints = new Vector2i[1];
+            _startPoints[0] = GetRandomStartSide(_mazeRows, _mazeColumns);
 
-            _map = GenerateRandomWalkMaze(ref _startPoint, _mazeRows, _mazeColumns, _mapWidth, _mapHeight);
-
-            //startPoint.x = startPoint.x * map.GetLength(0) / mazeRows + map.GetLength(0) / (2 * mazeRows);
-            //startPoint.y = startPoint.y * map.GetLength(1) / mazeColumns + map.GetLength(1) / (2 * mazeColumns);
-
-            //WriteToTexture(map, 4, 4);
-
+            _map = GenerateRandomWalkMaze(ref _startPoints[0], _mazeRows, _mazeColumns, _mapWidth, _mapHeight);
+            
             InitializeMap(_map);
-
-            //WriteToTexture(map, 4, 4);
 
             for (int i = 0; i < _numberOfSteps; i++)
                 _map = DoSimulationStep(_map);
 
-            _map = CleanupMap(_map, _startPoint);
+            _map = CleanupMap(_map, _startPoints);
 
-            //WriteToTexture(map, 4, 4);
-            //spriteRenderer.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
+            return _map;
+        }
+
+        public int[,] GenerateLevelFromNodes(MapNode[] nodes, Connection[] connections)
+        {
+            _startPoints = new Vector2i[nodes.Length];
+
+            _map = CreatePathFromNodes(nodes, connections, _mapWidth, _mapHeight);
+            _startPoints = GetStartPoints(_map, nodes);
+
+            InitializeMapCustomPathWidth(_map);
+
+            for (int i = 0; i < _numberOfSteps; i++)
+                _map = DoSimulationStep(_map);
+
+            _map = CleanupMap(_map, _startPoints);
 
             return _map;
         }
@@ -294,6 +338,62 @@ namespace MapGenerator
                         _map[i, j] = startingPath[i, j];
                     //else if (startingPath[i, j] == softPath && UnityEngine.Random.Range(0, 100) < chanceToStartAlive)
                     else if (startingPath[i, j] == softPath && _rng.Next(0, 100) < _chanceToStartAlive)
+                        _map[i, j] = 1;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Initializes the map along a path with random alive or dead cells
+        /// </summary>
+        /// <param name="startingPath"></param>
+        private void InitializeMapCustomPathWidth(int[,] startingPath)
+        {
+            int[,] tempMap = new int[startingPath.GetLength(0), startingPath.GetLength(1)];
+            _map = new int[startingPath.GetLength(0), startingPath.GetLength(1)];
+
+            // Mark each cell that is within one pathwidth of the initial path
+            for (int i = 0; i < startingPath.GetLength(0); i++)
+            {
+                for (int j = 0; j < startingPath.GetLength(1); j++)
+                {
+                    // Check if the current point is on the existing path, then mark all points in the radius on the temporary map
+                    if (startingPath[i, j] > 0)
+                    {
+                        tempMap[i, j] = hardPath;
+
+                        // The starting path value is the distance we add soft path
+                        for (int k = 0; k < startingPath[i, j]; k++)
+                        {
+                            for (int k2 = 0; k2 < (startingPath[i, j] - k); k2++)
+                            {
+                                // Skip the starting point since we know it is a hard path
+                                if (k == 0 && k2 == 0)
+                                    continue;
+
+                                if (i + k < tempMap.GetLength(0) && j + k2 < tempMap.GetLength(1) && tempMap[i + k, j + k2] < hardPath)
+                                    tempMap[i + k, j + k2] = softPath;
+                                if (i - k > 0 && j + k2 < tempMap.GetLength(1) && tempMap[i - k, j + k2] < hardPath)
+                                    tempMap[i - k, j + k2] = softPath;
+                                if (i + k < tempMap.GetLength(0) && j - k2 > 0 && tempMap[i + k, j - k2] < hardPath)
+                                    tempMap[i + k, j - k2] = softPath;
+                                if (i - k > 0 && j - k2 > 0 && tempMap[i - k, j - k2] < hardPath)
+                                    tempMap[i - k, j - k2] = softPath;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Seed the map with random living cells in areas determined by the maze
+            for (int i = 0; i < _map.GetLength(0); i++)
+            {
+                for (int j = 0; j < _map.GetLength(1); j++)
+                {
+                    if (tempMap[i, j] >= hardPath)
+                        _map[i, j] = tempMap[i, j];
+                    //else if (startingPath[i, j] == softPath && UnityEngine.Random.Range(0, 100) < chanceToStartAlive)
+                    else if (tempMap[i, j] == softPath && _rng.Next(0, 100) < _chanceToStartAlive)
                         _map[i, j] = 1;
                 }
             }
@@ -383,6 +483,25 @@ namespace MapGenerator
             }
 
             return count;
+        }
+
+        private int DistanceToNeighborNotOfValue(int[,] map, int x, int y, int maxDistance, int countIfNot)
+        {
+            for (int d = 1; d < maxDistance; d++)
+            {
+                for (int i = -d; i < d + 1; i++)
+                {
+                    if (x + i > 0 && x + i < map.GetLength(0) && y + d < map.GetLength(1) && y - d > 0 && (map[x + i, y + d] != countIfNot || map[x + i, y - d] != countIfNot))
+                        return d;
+                }
+                for (int j = -d + 1; j < d; j++)
+                {
+                    if (x + d < map.GetLength(0) && y + j > 0 && y + j < map.GetLength(1) && x - d > 0 && (map[x + d, y + j] != countIfNot || map[x - d, y + j] != countIfNot))
+                        return d;
+                }
+            }
+
+            return -1;
         }
 
         private int CountNeighborsInSet(Hashtable set, int[,] map, int x, int y)
@@ -485,66 +604,80 @@ namespace MapGenerator
         /// <param name="oldMap"></param>
         /// <param name="startPoint"></param>
         /// <returns></returns>
-        private int[,] CleanupMap(int[,] oldMap, Vector2i startPoint)
+        private int[,] CleanupMap(int[,] oldMap, Vector2i[] startPoints)
         {
-            int[,] newMap = new int[oldMap.GetLength(0), oldMap.GetLength(1)];
+            int[,] map = new int[oldMap.GetLength(0), oldMap.GetLength(1)];
 
-            List<Vector2i> pointsToCheck = new List<Vector2i>
+            foreach (Vector2i startPoint in _startPoints)
             {
-                startPoint
-            };
-            newMap[startPoint.x, startPoint.y] = oldMap[startPoint.x, startPoint.y];
-            //newMap[startPoint.x, startPoint.y] = 2;
+                int[,] newMap = new int[oldMap.GetLength(0), oldMap.GetLength(1)];
 
-            while (pointsToCheck.Count > 0)
-            {
-                Vector2i currentPoint = pointsToCheck[pointsToCheck.Count - 1];
+                List<Vector2i> pointsToCheck = new List<Vector2i>
+                {
+                    startPoint
+                };
+                newMap[startPoint.x, startPoint.y] = oldMap[startPoint.x, startPoint.y];
+                //newMap[startPoint.x, startPoint.y] = 2;
 
-                pointsToCheck.RemoveAt(pointsToCheck.Count - 1);
+                while (pointsToCheck.Count > 0)
+                {
+                    Vector2i currentPoint = pointsToCheck[pointsToCheck.Count - 1];
 
-                if (currentPoint.y + 1 < oldMap.GetLength(1) && oldMap[currentPoint.x, currentPoint.y + 1] > 0 && newMap[currentPoint.x, currentPoint.y + 1] == 0) // Check the north point
-                {
-                    pointsToCheck.Add(new Vector2i(currentPoint.x, currentPoint.y + 1));
-                    newMap[currentPoint.x, currentPoint.y + 1] = oldMap[currentPoint.x, currentPoint.y + 1];
+                    pointsToCheck.RemoveAt(pointsToCheck.Count - 1);
+
+                    if (currentPoint.y + 1 < oldMap.GetLength(1) && oldMap[currentPoint.x, currentPoint.y + 1] > 0 && newMap[currentPoint.x, currentPoint.y + 1] == 0) // Check the north point
+                    {
+                        pointsToCheck.Add(new Vector2i(currentPoint.x, currentPoint.y + 1));
+                        newMap[currentPoint.x, currentPoint.y + 1] = oldMap[currentPoint.x, currentPoint.y + 1];
+                    }
+                    if (currentPoint.x + 1 < oldMap.GetLength(0) && oldMap[currentPoint.x + 1, currentPoint.y] > 0 && newMap[currentPoint.x + 1, currentPoint.y] == 0) // Check the east point
+                    {
+                        pointsToCheck.Add(new Vector2i(currentPoint.x + 1, currentPoint.y));
+                        newMap[currentPoint.x + 1, currentPoint.y] = oldMap[currentPoint.x + 1, currentPoint.y];
+                    }
+                    if (currentPoint.y - 1 >= 0 && oldMap[currentPoint.x, currentPoint.y - 1] > 0 && newMap[currentPoint.x, currentPoint.y - 1] == 0) // Check the south point
+                    {
+                        pointsToCheck.Add(new Vector2i(currentPoint.x, currentPoint.y - 1));
+                        newMap[currentPoint.x, currentPoint.y - 1] = oldMap[currentPoint.x, currentPoint.y - 1];
+                    }
+                    if (currentPoint.x - 1 >= 0 && oldMap[currentPoint.x - 1, currentPoint.y] > 0 && newMap[currentPoint.x - 1, currentPoint.y] == 0) // Check the west point
+                    {
+                        pointsToCheck.Add(new Vector2i(currentPoint.x - 1, currentPoint.y));
+                        newMap[currentPoint.x - 1, currentPoint.y] = oldMap[currentPoint.x - 1, currentPoint.y];
+                    }
                 }
-                if (currentPoint.x + 1 < oldMap.GetLength(0) && oldMap[currentPoint.x + 1, currentPoint.y] > 0 && newMap[currentPoint.x + 1, currentPoint.y] == 0) // Check the east point
+
+                Point startPointMazeCell = new Point(startPoint.x * MazeColumns / MapWidth, startPoint.y * MazeRows / MapHeight);
+                for (int i = 0; i < newMap.GetLength(0); i++)
                 {
-                    pointsToCheck.Add(new Vector2i(currentPoint.x + 1, currentPoint.y));
-                    newMap[currentPoint.x + 1, currentPoint.y] = oldMap[currentPoint.x + 1, currentPoint.y];
+                    bool onMazeX = (int)(i * MazeColumns / MapWidth) == startPointMazeCell.X;
+
+                    if (newMap[i, 0] != 0 && !(startPointMazeCell.Y == 0 && onMazeX))
+                        newMap[i, 0] = 0;
+                    if (newMap[i, newMap.GetLength(1) - 1] != 0 && !(startPointMazeCell.Y == MazeRows - 1 && onMazeX))
+                        newMap[i, newMap.GetLength(1) - 1] = 0;
                 }
-                if (currentPoint.y - 1 >= 0 && oldMap[currentPoint.x, currentPoint.y - 1] > 0 && newMap[currentPoint.x, currentPoint.y - 1] == 0) // Check the south point
+                for (int i = 0; i < newMap.GetLength(1); i++)
                 {
-                    pointsToCheck.Add(new Vector2i(currentPoint.x, currentPoint.y - 1));
-                    newMap[currentPoint.x, currentPoint.y - 1] = oldMap[currentPoint.x, currentPoint.y - 1];
+                    bool onMazeY = (int)(i * MazeRows / MapWidth) == startPointMazeCell.Y;
+
+                    if (newMap[0, i] != 0 && !(startPointMazeCell.X == 0 && onMazeY))
+                        newMap[0, i] = 0;
+                    if (newMap[newMap.GetLength(0) - 1, i] != 0 && !(startPointMazeCell.X == MazeColumns - 1 && onMazeY))
+                        newMap[newMap.GetLength(0) - 1, i] = 0;
                 }
-                if (currentPoint.x - 1 >= 0 && oldMap[currentPoint.x - 1, currentPoint.y] > 0 && newMap[currentPoint.x - 1, currentPoint.y] == 0) // Check the west point
+
+                for(int i = 0; i < map.GetLength(0); i++)
                 {
-                    pointsToCheck.Add(new Vector2i(currentPoint.x - 1, currentPoint.y));
-                    newMap[currentPoint.x - 1, currentPoint.y] = oldMap[currentPoint.x - 1, currentPoint.y];
+                    for (int j = 0; j < map.GetLength(1); j++)
+                    {
+                        if (newMap[i, j] > 0)
+                            map[i, j] = newMap[i, j];
+                    }
                 }
             }
 
-            Point startPointMazeCell = new Point(startPoint.x * MazeColumns / MapWidth, startPoint.y * MazeRows / MapHeight);
-            for (int i = 0; i < newMap.GetLength(0); i++)
-            {
-                bool onMazeX = (int)(i * MazeColumns / MapWidth) == startPointMazeCell.X;
-                
-                if (newMap[i, 0] != 0 && !(startPointMazeCell.Y == 0 && onMazeX))
-                    newMap[i, 0] = 0;
-                if (newMap[i, newMap.GetLength(1) - 1] != 0 && !(startPointMazeCell.Y == MazeRows - 1 && onMazeX))
-                    newMap[i, newMap.GetLength(1) - 1] = 0;
-            }
-            for (int i = 0; i < newMap.GetLength(1); i++)
-            {
-                bool onMazeY = (int)(i * MazeRows / MapWidth) == startPointMazeCell.Y;
-
-                if (newMap[0, i] != 0 && !(startPointMazeCell.X == 0 && onMazeY))
-                    newMap[0, i] = 0;
-                if (newMap[newMap.GetLength(0) - 1, i] != 0 && !(startPointMazeCell.X == MazeColumns - 1 && onMazeY))
-                    newMap[newMap.GetLength(0) - 1, i] = 0;
-            }
-
-            return newMap;
+            return map;
         }
 
         private void DebugWriteToTexture(int [,] map, int horizontalScale, int verticalScale)
@@ -714,7 +847,9 @@ namespace MapGenerator
 
             Hashtable openSet = new Hashtable();
             List<Point> singleNeighbor = new List<Point>();
+            List<Point> wallPoints = new List<Point>();
 
+            // Add points to the open set
             for (int i = 0; i < map.GetLength(0); i++)
             {
                 for (int j = 0; j < map.GetLength(1); j++)
@@ -724,6 +859,7 @@ namespace MapGenerator
                     {
                         Point currentPoint = new Point(i, j);
                         openSet.Add(UniquePointHashCode(currentPoint, map), currentPoint);
+                        wallPoints.Add(currentPoint);
                         //g.DrawEllipse(linePen, i * horizontalScale, j * verticalScale, horizontalScale / 4, verticalScale / 4);
                         if (IndexOnEdge(map, i, j) && CountAdjacentNeighborsNotOfValue(map, i, j, 0) >= 1)
                         {
@@ -734,8 +870,24 @@ namespace MapGenerator
                 }
             }
 
-            List<Point> connectedPoints = new List<Point>();
+            // Add a decal for walls
+            foreach (Point p in wallPoints)
+            {
+                Color lightGray = Color.FromArgb(40, Color.LightGray);
+                Color darkGray = Color.FromArgb(40, Color.DarkGray);
 
+                // Fake a gradient by drawing repeated low alpha circles that get bigger each time
+                for (int i = 0; i < horizontalScale * 2; i++)
+                {
+                    float j = i * horizontalScale / verticalScale;
+                    g.FillEllipse(new HatchBrush(HatchStyle.DiagonalCross, darkGray, lightGray), p.X * horizontalScale - i * 0.75f, p.Y * verticalScale - j * 0.75f, 2.0f * i, 2.0f * j);
+                }
+            }
+
+            List<Point> connectedPoints = new List<Point>();
+            List<List<Point>> paths = new List<List<Point>>();
+
+            // Find all connections to points with only a single neighbor and draw them first
             while (singleNeighbor.Count > 0)
             {
                 Point currentPoint = singleNeighbor[singleNeighbor.Count - 1];
@@ -746,23 +898,6 @@ namespace MapGenerator
                     continue;
                 }
                 Point lastVertex = GetSingleNeighborStartPoint(currentPoint, map, horizontalScale, verticalScale);
-                //lastVertex = new Point(currentPoint.X, currentPoint.Y);
-                //if (currentPoint.X < 1)
-                //{
-                //    lastVertex = new Point(0, currentPoint.Y * verticalScale);
-                //}
-                //else if (currentPoint.X > map.GetLength(0) - 2)
-                //{
-                //    lastVertex = new Point(map.GetLength(0) * horizontalScale, currentPoint.Y * verticalScale);
-                //}
-                //else if (currentPoint.Y < 1)
-                //{
-                //    lastVertex = new Point(currentPoint.X * horizontalScale, 0);
-                //}
-                //else
-                //{
-                //    lastVertex = new Point(currentPoint.X * horizontalScale, map.GetLength(1) * verticalScale);
-                //}
                 connectedPoints.Add(lastVertex);
                 connectedPoints.AddRange(GetPoints(currentPoint, lastVertex, map, horizontalScale, verticalScale));
                 lastVertex = connectedPoints[connectedPoints.Count - 1];
@@ -806,27 +941,30 @@ namespace MapGenerator
                         doubleSidedPoints.Add(UniquePointHashCode(currentPoint, map), currentPoint);
                     }
                 }
-                
+
+                // Add extra points if we aren't at the correct multiple of points for the drawing type
                 if (drawSmooth)
                 {
                     while (connectedPoints.Count % 3 != 1)
                         connectedPoints.Add(connectedPoints[connectedPoints.Count - 1]);
 
-                    g.DrawBeziers(linePen, connectedPoints.ToArray());
+                    // If there are only 4 or less points, skip this, as it is too small to draw a bezier curve
+                    if (connectedPoints.Count <= 4)
+                        continue;
                 }
                 else
                 {
                     if (connectedPoints.Count % 2 > 0)
                         connectedPoints.Add(connectedPoints[connectedPoints.Count - 1]);
-
-                    g.DrawLines(linePen, connectedPoints.ToArray());
                 }
+
+                paths.Add(new List<Point>(connectedPoints));
 
                 connectedPoints.Clear();
             }
 
+            // Go through all points in the open set and add its neighbors to form continuous lines
             while (openSet.Count > 0)
-            //while (false)
             {
                 Dictionary<int, Point> doubleSidedPoints = new Dictionary<int, Point>();
                 Point currentPoint = new Point();
@@ -889,25 +1027,75 @@ namespace MapGenerator
 
                 connectedPoints.Add(new Point(connectedPoints[0].X, connectedPoints[0].Y));
 
+                // Add extra points if we aren't at the correct multiple of points for the drawing type
                 if (drawSmooth)
                 {
                     while (connectedPoints.Count % 3 != 1)
                         connectedPoints.Add(connectedPoints[connectedPoints.Count - 1]);
 
-                    if (connectedPoints.Count > 4)
-                        g.DrawBeziers(linePen, connectedPoints.ToArray());
+                    // If there are only 4 or less points, skip this, as it is too small to draw a bezier curve
+                    if (connectedPoints.Count <= 4)
+                        continue;
                 }
                 else
                 {
                     if (connectedPoints.Count % 2 > 0)
                         connectedPoints.Add(connectedPoints[connectedPoints.Count - 1]);
-
-                    g.DrawLines(linePen, connectedPoints.ToArray());
                 }
+                paths.Add(new List<Point>(connectedPoints));
                 
                 connectedPoints.Clear();
             }
+
+            // Add a filled path to get rid of the inside of the path
+            GraphicsPath fillPath = new GraphicsPath();
+            foreach (List<Point> path in paths)
+            {
+                byte[] types = new byte[path.Count];
+                types[0] = (byte)PathPointType.Start;
+                for (int i = 1; i < types.Length; i++)
+                {
+                    types[i] = (byte)PathPointType.Bezier;
+                }
+
+                GraphicsPath newPath = new GraphicsPath(path.ToArray(), types);
+                fillPath.AddPath(newPath, false);
+            }
+            g.FillPath(Brushes.White, fillPath);
+
+            // Draw each path starting with the largest path
+            while (paths.Count > 0)
+            {
+                List<Point> longestPath = null;
+                float biggestRect = 0;
+                foreach (List<Point> path in paths)
+                {
+                    byte[] types = new byte[path.Count];
+                    types[0] = 1;
+                    for (int i = 1; i < types.Length; i++)
+                    {
+                        types[i] = 3;
+                    }
+                    GraphicsPath gPath = new GraphicsPath(path.ToArray(), types);
+                    float area = gPath.GetBounds().Width * gPath.GetBounds().Height;
+                    if (area > biggestRect)
+                    {
+                        biggestRect = area;
+                        longestPath = path;
+                    }
+                }
+
+                if (longestPath == null)
+                {
+                    paths.Clear();
+                    continue;
+                }
+
+                paths.Remove(longestPath);
+                DrawPath(g, drawSmooth, longestPath, linePen);
+            }
             
+            // Draw grid lines
             if (DrawGridLines && MapWidth > GridLineWidth && MapHeight > GridLineHeight)
             {
                 Pen gridPen = new Pen(Color.Black, linePen.Width / 2);
@@ -949,8 +1137,38 @@ namespace MapGenerator
                     }
                 }
             }
-
+            
             g.Dispose();
+        }
+
+        private void DrawPath(Graphics g, bool drawSmooth, List<Point> connectedPoints, Pen linePen)
+        {
+            if (drawSmooth)
+            {
+                while (connectedPoints.Count % 3 != 1)
+                    connectedPoints.Add(connectedPoints[connectedPoints.Count - 1]);
+
+                if (connectedPoints.Count > 4)
+                {
+                    //Point[] points = connectedPoints.ToArray();
+                    //byte[] types = new byte[connectedPoints.Count];
+                    //types[0] = 1;
+                    //for (int i = 1; i < types.Length; i++)
+                    //{
+                    //    types[i] = 3;
+                    //}
+                    //System.Drawing.Drawing2D.GraphicsPath path = new System.Drawing.Drawing2D.GraphicsPath(points, types);
+                    //g.FillPath(Brushes.White, path);
+                    g.DrawBeziers(linePen, connectedPoints.ToArray());
+                }
+            }
+            else
+            {
+                if (connectedPoints.Count % 2 > 0)
+                    connectedPoints.Add(connectedPoints[connectedPoints.Count - 1]);
+
+                g.DrawLines(linePen, connectedPoints.ToArray());
+            }
         }
 
         private bool FindAdjacentPointInSet(Point currentPoint, out Point adjacentPoint, Hashtable openSet, int[,] map)
@@ -2083,6 +2301,46 @@ namespace MapGenerator
             }
         }
 
+        private Vector2i[] GetStartPoints(int[,] map, MapNode[] nodes)
+        {
+            List<Vector2i> startPoints = new List<Vector2i>();
+
+            foreach (MapNode node in nodes)
+            {
+                if (map[node.PerturbedPosition.X, node.PerturbedPosition.Y] > 0)
+                {
+                    startPoints.Add(new Vector2i(node.PerturbedPosition.X, node.PerturbedPosition.Y));
+                    continue;
+                }
+
+                //Expanding ring of searches
+                for (int k = 1; k < node.RoomSize + node.PathWidth; k++)
+                {
+                    for (int i = -k; i < k; i++)
+                    {
+                        for (int j = -k; j < k; j++)
+                        {
+                            int xPos = node.PerturbedPosition.X + i;
+                            int yPos = node.PerturbedPosition.Y + j;
+                            if (xPos > 0 && xPos < map.GetLength(0) && yPos > 0 && yPos < map.GetLength(1) && (Math.Abs(i) == k || Math.Abs(i) == k))
+                            {
+                                if (map[xPos, yPos] > 0)
+                                {
+                                    startPoints.Add(new Vector2i(xPos, yPos));
+                                    //Move to next node
+                                    i = k;
+                                    j = k;
+                                    k = map.GetLength(0) + map.GetLength(1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return startPoints.ToArray();
+        }
+
         private Point GetSingleNeighborStartPoint(Point currentPoint, int[,] map, int horizontalScale, int verticalScale)
         {
             int halfHorizontal = (int)(0.5f * horizontalScale);
@@ -2494,30 +2752,7 @@ namespace MapGenerator
             int maxYPerturb = PathWidth * mapHeight / (10 * (mazeRows + 1));
             int cellHalfWidth = mapWidth / (2 * mazeRows);
             int cellHalfHeight = mapHeight / (2 * mazeColumns);
-            int[,] test = new int[mapWidth, mapHeight];
-            for (int i = 0; i < mazeNodes.GetLength(0); i++)
-            {
-                for (int j = 0; j < mazeNodes.GetLength(1); j++)
-                {
-                    foreach (Direction d in mazeNodes[i, j].connections.Keys)
-                    {
-                        // Skip connections to the north or west, so we don't duplicate our paths
-                        if (d == Direction.SOUTH || d == Direction.EAST)
-                        {
-                            bool horizontal = d == Direction.EAST;
-                            int cellSize = horizontal ? cellHalfWidth * 2 : cellHalfHeight * 2;
-                            for (int k = 0; k < cellSize; k++)
-                            {
-                                if (horizontal)
-                                    test[i * cellHalfWidth * 2 + k, j * cellHalfHeight * 2] = 1;
-                                else
-                                    test[i * cellHalfWidth * 2, j * cellHalfHeight * 2 + k] = 1;
-                            }
-                        }
-                    }
-                }
-            }
-            DebugWriteToTexture(test, _pixelsPerMapUnit, _pixelsPerMapUnit);
+
             ScaleMazeNodes(ref startingPoint, mazeNodes, mapWidth, mapHeight);
             PerturbNodes(ref startingPoint, mazeNodes, maxXPerturb, maxYPerturb, mapWidth, mapHeight, xEdgeBuffer, yEdgeBuffer, cellHalfWidth, cellHalfHeight);
 
@@ -2560,6 +2795,52 @@ namespace MapGenerator
             return maze;
         }
 
+        private int[,] CreatePathFromNodes(MapNode[] nodes, Connection[] connections, int mapWidth, int mapHeight)
+        {
+            int[,] map = new int[mapWidth, mapHeight];
+
+            PerturbNodes(nodes, mapWidth, mapHeight);
+
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                //foreach (Connection c in nodes[i].Connections)
+                //{
+                //    if (c.PathType == ConnectionType.RandomWalk)
+                //    {
+                //        Point node0Location = c.GetNodeTrueLocation(0);
+                //        Point node1Location = c.GetNodeTrueLocation(1);
+                //        AddRandomWalkPath(map, new Vector2i(node0Location.X, node0Location.Y), new Vector2i(node1Location.X, node1Location.Y), c.PathWidth);
+                //    }
+                //    else if (c.PathType == ConnectionType.Straight)
+                //    {
+                //        Point node0Location = c.GetNodeTrueLocation(0);
+                //        Point node1Location = c.GetNodeTrueLocation(1);
+                //        AddStraightPath(map, new Vector2i(node0Location.X, node0Location.Y), new Vector2i(node1Location.X, node1Location.Y), c.PathWidth);
+                //    }
+                //}
+
+                AddRoomFromNode(ref map, nodes[i], nodes[i].RoomSize);
+            }
+
+            foreach (Connection c in connections)
+            {
+                if (c.PathType == ConnectionType.RandomWalk)
+                {
+                    Point node0Location = c.GetNodeTrueLocation(0);
+                    Point node1Location = c.GetNodeTrueLocation(1);
+                    AddRandomWalkPath(map, new Vector2i(node0Location.X, node0Location.Y), new Vector2i(node1Location.X, node1Location.Y), c.PathWidth);
+                }
+                else if (c.PathType == ConnectionType.Straight)
+                {
+                    Point node0Location = c.GetNodeTrueLocation(0);
+                    Point node1Location = c.GetNodeTrueLocation(1);
+                    AddStraightPath(map, new Vector2i(node0Location.X, node0Location.Y), new Vector2i(node1Location.X, node1Location.Y), c.PathWidth);
+                }
+            }
+
+            return map;
+        }
+        
         /// <summary>
         /// Creates a maze twice the given dimensions, to allow for the walls to be empty cells between the living passage cells
         /// </summary>
@@ -2652,7 +2933,7 @@ namespace MapGenerator
 
             return mazeNodes;
         }
-
+        
         private Vector2i GetRandomStartSide(int rows, int columns)
         {
             Vector2i startingCell;
@@ -2822,7 +3103,6 @@ namespace MapGenerator
             {
                 for (int j = 0; j < nodes.GetLength(1); j++)
                 {
-                    //Vector2i perturbAmount = new Vector2i(UnityEngine.Random.Range(-maxPerturb, maxPerturb), UnityEngine.Random.Range(-maxPerturb, maxPerturb));
                     Vector2i perturbAmount = new Vector2i(_rng.Next(-maxXPerturb, maxXPerturb), _rng.Next(-maxYPerturb, maxYPerturb));
                     Vector2i oldPosition = new Vector2i(nodes[i, j].position.x, nodes[i, j].position.y);
                     nodes[i, j].position += perturbAmount;
@@ -2852,6 +3132,28 @@ namespace MapGenerator
                         perturbedStartPoint = true;
                     }
                 }
+            }
+        }
+
+        private void PerturbNodes(MapNode[] nodes, int maxWidth, int maxHeight)
+        {
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                Vector2i perturbAmount = new Vector2i(_rng.Next(-nodes[i].MaxPerturb, nodes[i].MaxPerturb), _rng.Next(-nodes[i].MaxPerturb, nodes[i].MaxPerturb));
+                Point tempPosition = new Point(nodes[i].TruePosition.X + perturbAmount.x, nodes[i].TruePosition.Y + perturbAmount.y);
+
+                // Clamp node position
+                if (tempPosition.X > maxWidth)
+                    tempPosition.X = maxWidth;
+                else if (tempPosition.X < 0)
+                    tempPosition.X = 0;
+
+                if (tempPosition.Y > maxHeight)
+                    tempPosition.Y = maxHeight;
+                else if (tempPosition.Y < 0)
+                    tempPosition.Y = 0;
+
+                nodes[i].PerturbedPosition = tempPosition;
             }
         }
 
@@ -2889,31 +3191,101 @@ namespace MapGenerator
             int rngRoll = _rng.Next(0, 100);
             if (rngRoll < 17)
             {
-                AddCRoom(ref map, nodeCenter, node.position, new Vector2i(roomX, roomY), scale, size);
+                AddCRoom(ref map, node.position, new Vector2i(roomX, roomY), size);
             }
             else if (rngRoll < 34)
             {
-                AddIRoom(ref map, nodeCenter, node.position, new Vector2i(roomX, roomY), scale, size);
+                AddIRoom(ref map, node.position, new Vector2i(roomX, roomY), size);
             }
             else if (rngRoll < 51)
             {
-                AddLRoom(ref map, nodeCenter, node.position, new Vector2i(roomX, roomY), scale, size);
+                AddLRoom(ref map, node.position, new Vector2i(roomX, roomY), size);
             }
             else if (rngRoll < 68)
             {
-                AddORoom(ref map, nodeCenter, node.position, new Vector2i(roomX, roomY), scale, size);
+                AddORoom(ref map, node.position, new Vector2i(roomX, roomY), size);
             }
             else if (rngRoll < 85)
             {
-                AddSolidORoom(ref map, nodeCenter, node.position, new Vector2i(roomX, roomY), scale, size);
+                AddSolidORoom(ref map, node.position, new Vector2i(roomX, roomY), size);
             }
             else
             {
-                AddXRoom(ref map, nodeCenter, node.position, new Vector2i(roomX, roomY), scale, size);
+                AddXRoom(ref map, node.position, new Vector2i(roomX, roomY), size);
             }
         }
 
-        private void AddCRoom(ref int[,] map, Vector2i nodeCenter, Vector2i nodePosition, Vector2i adjustedNodePosition, Vector2i scale, int size)
+        private void AddRoomFromNode(ref int[,] map, MapNode node, int size)
+        {
+            switch (node.Room)
+            {
+                case MapNode.RoomType.RandomRoom:
+                    {
+                        int rngRoll = _rng.Next(0, 100);
+                        if (rngRoll < 17)
+                        {
+                            AddCRoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        }
+                        else if (rngRoll < 34)
+                        {
+                            AddIRoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        }
+                        else if (rngRoll < 51)
+                        {
+                            AddLRoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        }
+                        else if (rngRoll < 68)
+                        {
+                            AddORoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        }
+                        else if (rngRoll < 85)
+                        {
+                            AddSolidORoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        }
+                        else
+                        {
+                            AddXRoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        }
+                        break;
+                    }
+                case MapNode.RoomType.CRoom:
+                    {
+                        AddCRoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        break;
+                    }
+                case MapNode.RoomType.IRoom:
+                    {
+                        AddIRoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        break;
+                    }
+                case MapNode.RoomType.LRoom:
+                    {
+                        AddLRoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        break;
+                    }
+                case MapNode.RoomType.ORoom:
+                    {
+                        AddORoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        break;
+                    }
+                case MapNode.RoomType.SolidORoom:
+                    {
+                        AddSolidORoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        break;
+                    }
+                case MapNode.RoomType.XRoom:
+                    {
+                        AddXRoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        }
+
+        private void AddCRoom(ref int[,] map, Vector2i nodePosition, Vector2i adjustedNodePosition, int size)
         {
             Vector2 distance = new Vector2(nodePosition.x - adjustedNodePosition.x, nodePosition.y - adjustedNodePosition.y);
             Vector2 normalizedDistance = distance / (float)Math.Sqrt(distance.x * distance.x + distance.y * distance.y);
@@ -2937,8 +3309,6 @@ namespace MapGenerator
                 for (int j = -size; j < size; j++)
                 {
                     float mag = (float)Math.Sqrt(i * i + j * j);
-                    //if (i != 0)
-                    //{
                     float angle = (float)Math.Atan2(j, i);
                     if (adjustedNodePosition.x + i < 0 || adjustedNodePosition.x + i > map.GetLength(0) - 1 || adjustedNodePosition.y + j < 0 || adjustedNodePosition.y + j > map.GetLength(1) - 1 || mag > size || mag < size - 1 || (angle < openSideAngleHigh && angle > openSideAngleLow))
                     {
@@ -2952,7 +3322,31 @@ namespace MapGenerator
             }
         }
 
-        private void AddIRoom(ref int[,] map, Vector2i nodeCenter, Vector2i nodePosition, Vector2i adjustedNodePosition, Vector2i scale, int size)
+        // Add a C room where the opening is randomly placed
+        private void AddCRoom(ref int[,] map, Vector2i nodePosition, int size, int pathWidth)
+        {
+            float openSideAngle = (float)(_rng.NextDouble() * 1.5 * Math.PI - Math.PI * .75);
+            float openSideAngleHigh = openSideAngle + (float)Math.PI / 4.0f;
+            float openSideAngleLow = openSideAngle - (float)Math.PI / 4.0f;
+            for (int i = -size; i < size; i++)
+            {
+                for (int j = -size; j < size; j++)
+                {
+                    float mag = (float)Math.Sqrt(i * i + j * j);
+                    float angle = (float)Math.Atan2(j, i);
+                    if (nodePosition.x + i < 0 || nodePosition.x + i > map.GetLength(0) - 1 || nodePosition.y + j < 0 || nodePosition.y + j > map.GetLength(1) - 1 || mag > size || mag < size - 1 || (angle < openSideAngleHigh && angle > openSideAngleLow))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        map[nodePosition.x + i, nodePosition.y + j] = pathWidth;
+                    }
+                }
+            }
+        }
+
+        private void AddIRoom(ref int[,] map, Vector2i nodePosition, Vector2i adjustedNodePosition, int size)
         {
             Vector2 distance = new Vector2(nodePosition.x - adjustedNodePosition.x, nodePosition.y - adjustedNodePosition.y);
             Vector2 normalizedDistance = distance / (float)Math.Sqrt(distance.x * distance.x + distance.y * distance.y);
@@ -3002,7 +3396,59 @@ namespace MapGenerator
             }
         }
 
-        private void AddLRoom(ref int[,] map, Vector2i nodeCenter, Vector2i nodePosition, Vector2i adjustedNodePosition, Vector2i scale, int size)
+        // Add an I room where the orientation is randomly assigned
+        private void AddIRoom(ref int[,] map, Vector2i nodePosition, int size, int pathWidth)
+        {
+            double angle = _rng.NextDouble() * 2 * Math.PI;
+            Vector2 distance = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
+            Vector2 normalizedDistance = distance / (float)Math.Sqrt(distance.x * distance.x + distance.y * distance.y);
+            Vector2 rotatedNormalizedDistance;
+            // Rotate counterclockwise
+            if (_rng.Next(0, 2) > 0)
+            {
+                rotatedNormalizedDistance = new Vector2(-normalizedDistance.y, normalizedDistance.x);
+            }
+            else // Rotate clockwise
+            {
+                rotatedNormalizedDistance = new Vector2(normalizedDistance.y, -normalizedDistance.x);
+            }
+
+            for (int i = -size; i < size; i++)
+            {
+                // Add center of I
+                int xPos = (int)(nodePosition.x + (i * normalizedDistance.x));
+                int yPos = (int)(nodePosition.y + (i * normalizedDistance.y));
+                if (xPos < 0 || xPos > map.GetLength(0) - 1 || yPos < 0 || yPos > map.GetLength(1) - 1)
+                {
+                    continue;
+                }
+                else
+                {
+                    map[xPos, yPos] = pathWidth;
+                }
+
+                // Add other parts of I
+                if (i == -size || i == size - 1)
+                {
+                    for (int j = -size; j < size; j++)
+                    {
+                        int x2Pos = (int)(xPos + (j * rotatedNormalizedDistance.x));
+                        int y2Pos = (int)(yPos + (j * rotatedNormalizedDistance.y));
+
+                        if (x2Pos < 0 || x2Pos > map.GetLength(0) - 1 || y2Pos < 0 || y2Pos > map.GetLength(1) - 1)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            map[x2Pos, y2Pos] = pathWidth;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void AddLRoom(ref int[,] map, Vector2i nodePosition, Vector2i adjustedNodePosition, int size)
         {
             Vector2 distance = new Vector2(nodePosition.x - adjustedNodePosition.x, nodePosition.y - adjustedNodePosition.y);
             Vector2 normalizedDistance = distance / (float)Math.Sqrt(distance.x * distance.x + distance.y * distance.y);
@@ -3044,7 +3490,51 @@ namespace MapGenerator
             }
         }
 
-        private void AddORoom(ref int[,] map, Vector2i nodeCenter, Vector2i nodePosition, Vector2i adjustedNodePosition, Vector2i scale, int size)
+        // Add an L room where the orientation is randomly assigned
+        private void AddLRoom(ref int[,] map, Vector2i nodePosition, int size, int pathWidth)
+        {
+            double angle = _rng.NextDouble() * 2 * Math.PI;
+            Vector2 distance = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
+            Vector2 normalizedDistance = distance / (float)Math.Sqrt(distance.x * distance.x + distance.y * distance.y);
+            Vector2 rotatedNormalizedDistance;
+            // Rotate counterclockwise
+            if (_rng.Next(0, 2) > 0)
+            {
+                rotatedNormalizedDistance = new Vector2(-normalizedDistance.y, normalizedDistance.x);
+            }
+            else // Rotate clockwise
+            {
+                rotatedNormalizedDistance = new Vector2(normalizedDistance.y, -normalizedDistance.x);
+            }
+
+            for (int i = 0; i < 2 * size; i++)
+            {
+                // Add one part of the L
+                int xPos = (int)(nodePosition.x + (i * normalizedDistance.x));
+                int yPos = (int)(nodePosition.y + (i * normalizedDistance.y));
+                if (xPos < 0 || xPos > map.GetLength(0) - 1 || yPos < 0 || yPos > map.GetLength(1) - 1)
+                {
+                    continue;
+                }
+                else
+                {
+                    map[xPos, yPos] = pathWidth;
+                }
+                // Add the other part of the L
+                xPos = (int)(nodePosition.x + (i * rotatedNormalizedDistance.x));
+                yPos = (int)(nodePosition.y + (i * rotatedNormalizedDistance.y));
+                if (xPos < 0 || xPos > map.GetLength(0) - 1 || yPos < 0 || yPos > map.GetLength(1) - 1)
+                {
+                    continue;
+                }
+                else
+                {
+                    map[xPos, yPos] = pathWidth;
+                }
+            }
+        }
+
+        private void AddORoom(ref int[,] map, Vector2i nodePosition, Vector2i adjustedNodePosition, int size)
         {
             for (int i = -size; i < size; i++)
             {
@@ -3063,7 +3553,27 @@ namespace MapGenerator
             }
         }
 
-        private void AddSolidORoom(ref int[,] map, Vector2i nodeCenter, Vector2i nodePosition, Vector2i adjustedNodePosition, Vector2i scale, int size)
+        // Add an o room
+        private void AddORoom(ref int[,] map, Vector2i nodePosition, int size, int pathWidth)
+        {
+            for (int i = -size; i < size; i++)
+            {
+                for (int j = -size; j < size; j++)
+                {
+                    float mag = (float)Math.Sqrt(i * i + j * j);
+                    if (nodePosition.x + i < 0 || nodePosition.x + i > map.GetLength(0) - 1 || nodePosition.y + j < 0 || nodePosition.y + j > map.GetLength(1) - 1 || mag > size || mag < size - 1)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        map[nodePosition.x + i, nodePosition.y + j] = pathWidth;
+                    }
+                }
+            }
+        }
+
+        private void AddSolidORoom(ref int[,] map, Vector2i nodePosition, Vector2i adjustedNodePosition, int size)
         {
             for (int i = -size; i < size; i++)
             {
@@ -3081,7 +3591,26 @@ namespace MapGenerator
             }
         }
 
-        private void AddXRoom(ref int[,] map, Vector2i nodeCenter, Vector2i nodePosition, Vector2i adjustedNodePosition, Vector2i scale, int size)
+        // Add a solid O room
+        private void AddSolidORoom(ref int[,] map, Vector2i nodePosition, int size, int pathWidth)
+        {
+            for (int i = -size; i < size; i++)
+            {
+                for (int j = -size; j < size; j++)
+                {
+                    if (nodePosition.x + i < 0 || nodePosition.x + i > map.GetLength(0) - 1 || nodePosition.y + j < 0 || nodePosition.y + j > map.GetLength(1) - 1 || Math.Sqrt(i * i + j * j) > size)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        map[nodePosition.x + i, nodePosition.y + j] = pathWidth;
+                    }
+                }
+            }
+        }
+
+        private void AddXRoom(ref int[,] map, Vector2i nodePosition, Vector2i adjustedNodePosition, int size)
         {
             Vector2 distance = new Vector2(nodePosition.x - adjustedNodePosition.x, nodePosition.y - adjustedNodePosition.y);
             Vector2 normalizedDistance = distance / (float)Math.Sqrt(distance.x * distance.x + distance.y * distance.y);
@@ -3119,6 +3648,50 @@ namespace MapGenerator
                 else
                 {
                     map[xPos, yPos] = 2;
+                }
+            }
+        }
+
+        // Add an X room where the orientation is randomly assigned
+        private void AddXRoom(ref int[,] map, Vector2i nodePosition, int size, int pathWidth)
+        {
+            double angle = _rng.NextDouble() * 2 * Math.PI;
+            Vector2 distance = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
+            Vector2 normalizedDistance = distance / (float)Math.Sqrt(distance.x * distance.x + distance.y * distance.y);
+            Vector2 rotatedNormalizedDistance;
+            // Rotate counterclockwise
+            if (_rng.Next(0, 2) > 0)
+            {
+                rotatedNormalizedDistance = new Vector2(-normalizedDistance.y, normalizedDistance.x);
+            }
+            else // Rotate clockwise
+            {
+                rotatedNormalizedDistance = new Vector2(normalizedDistance.y, -normalizedDistance.x);
+            }
+
+            for (int i = -size; i < size; i++)
+            {
+                // Add one part of the X
+                int xPos = (int)(nodePosition.x + (i * normalizedDistance.x));
+                int yPos = (int)(nodePosition.y + (i * normalizedDistance.y));
+                if (xPos < 0 || xPos > map.GetLength(0) - 1 || yPos < 0 || yPos > map.GetLength(1) - 1)
+                {
+                    continue;
+                }
+                else
+                {
+                    map[xPos, yPos] = pathWidth;
+                }
+                // Add the other part of the X
+                xPos = (int)(nodePosition.x + (i * rotatedNormalizedDistance.x));
+                yPos = (int)(nodePosition.y + (i * rotatedNormalizedDistance.y));
+                if (xPos < 0 || xPos > map.GetLength(0) - 1 || yPos < 0 || yPos > map.GetLength(1) - 1)
+                {
+                    continue;
+                }
+                else
+                {
+                    map[xPos, yPos] = pathWidth;
                 }
             }
         }
@@ -3304,6 +3877,49 @@ namespace MapGenerator
         }
 
         /// <summary>
+        /// Add a straight path to an existing map by giving a start and an end point
+        /// </summary>
+        /// <param name="map"></param>
+        /// <param name="startPoint"></param>
+        /// <param name="endPoint"></param>
+        /// <param name="pathWidth"></param>
+        /// <returns></returns>
+        private int[,] AddStraightPath(int[,] map, Vector2i startPoint, Vector2i endPoint, int pathWidth)
+        {
+            map[startPoint.x, startPoint.y] = pathWidth;
+            map[endPoint.x, endPoint.y] = pathWidth;
+            
+            // Bresenham's line algorithm
+            int deltaX = Math.Abs(endPoint.x - startPoint.x);
+            int signX = startPoint.x < endPoint.x ? 1 : -1;
+            int deltaY = Math.Abs(endPoint.y - startPoint.y);
+            int signY = startPoint.y < endPoint.y ? 1 : -1;
+            int error = ((deltaX > deltaY) ? deltaX : -deltaY) / 2;
+            int error2;
+            int x = startPoint.x;
+            int y = startPoint.y;
+            while (!(x == endPoint.x && y == endPoint.y))
+            {
+                map[x, y] = pathWidth;
+
+                error2 = error;
+
+                if (error2 > -deltaX)
+                {
+                    error -= deltaY;
+                    x += signX;
+                }
+                if (error2 < deltaY)
+                {
+                    error += deltaX;
+                    y += signY;
+                }
+            }
+
+            return map;
+        }
+
+        /// <summary>
         /// Add a random walk path to an existing map by giving a start and an end point
         /// </summary>
         /// <param name="map"></param>
@@ -3361,6 +3977,57 @@ namespace MapGenerator
                 if (newEndPoint.x < map.GetLength(0) && newEndPoint.x > 0 && newEndPoint.y < map.GetLength(1) && newEndPoint.y > 0)
                 {
                     map[newEndPoint.x, newEndPoint.y] = 2;
+                    prevEndPoint = newEndPoint;
+                }
+
+                count++;
+            }
+
+            return map;
+        }
+
+        /// <summary>
+        /// Add a random walk path to an existing map by giving a start and an end point
+        /// </summary>
+        /// <param name="map"></param>
+        /// <param name="startPoint"></param>
+        /// <param name="endPoint"></param>
+        /// <returns></returns>
+        private int[,] AddRandomWalkPath(int[,] map, Vector2i startPoint, Vector2i endPoint, int pathWidth)
+        {
+            int count = 0;
+
+            map[startPoint.x, startPoint.y] = pathWidth;
+            map[endPoint.x, endPoint.y] = pathWidth;
+
+            Vector2i prevStartPoint = new Vector2i(startPoint.x, startPoint.y);
+            Vector2i prevEndPoint = new Vector2i(endPoint.x, endPoint.y);
+            float startDistance = (float)Math.Sqrt((endPoint.x - startPoint.x) * (endPoint.x - startPoint.x) + (endPoint.y - startPoint.y) * (endPoint.y - startPoint.y));
+
+            while ((prevStartPoint.x != prevEndPoint.x || prevStartPoint.y != prevEndPoint.y) && count < 10000)
+            {
+                // Get a weighted random direction that tends to move the start and end points closer together
+                Direction direction = GetRandomDirection(prevStartPoint, prevEndPoint, startDistance);
+
+                Vector2i newStartPoint = prevStartPoint + GetDirectionMovement(direction);
+
+                if (newStartPoint.x < map.GetLength(0) && newStartPoint.x > 0 && newStartPoint.y < map.GetLength(1) && newStartPoint.y > 0)
+                {
+                    map[newStartPoint.x, newStartPoint.y] = pathWidth;
+                    prevStartPoint = newStartPoint;
+                }
+
+                if (prevStartPoint.x == prevEndPoint.x && prevStartPoint.y == prevEndPoint.y)
+                    break;
+
+                // Get a weighted random direction that tends to move the start and end points closer together
+                direction = GetRandomDirection(prevEndPoint, prevStartPoint, startDistance);
+
+                Vector2i newEndPoint = prevEndPoint + GetDirectionMovement(direction);
+
+                if (newEndPoint.x < map.GetLength(0) && newEndPoint.x > 0 && newEndPoint.y < map.GetLength(1) && newEndPoint.y > 0)
+                {
+                    map[newEndPoint.x, newEndPoint.y] = pathWidth;
                     prevEndPoint = newEndPoint;
                 }
 

@@ -1,0 +1,33 @@
+﻿<UserControl x:Class="MapGenerator.MapNodeControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MapGenerator"
+             mc:Ignorable="d" 
+             d:DesignHeight="20" d:DesignWidth="20" MouseMove="UserControl_MouseMove" MouseLeftButtonDown="UserControl_MouseLeftButtonDown" MouseLeftButtonUp="UserControl_MouseLeftButtonUp" Focusable="True" >
+    <Grid>
+        <Canvas>
+            <Canvas.ContextMenu>
+                <ContextMenu>
+                    <MenuItem x:Name="AddConnectionMenuItem" Header="Add Connection" Click="AddConnectionMenuItem_Click"></MenuItem>
+                    <MenuItem x:Name="RemoveNodeMenuItem" Header="Delete Node" Click="RemoveNodeMenuItem_Click"/>
+                </ContextMenu>
+            </Canvas.ContextMenu>
+            <Rectangle x:Name="SelectionRectangle" Stroke="Black" StrokeThickness="1" Width="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=SelectionRectangleSize}"
+                       Height="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=SelectionRectangleSize}"
+                       Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=SelectionRectangleOffset}"
+                       Visibility="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=ShowSelectionRectangle}"/>
+            <Ellipse x:Name="RoomSizeEllipse" Fill="#3F01FFFF" Stroke="#7F000000" Width="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=RoomSize}" 
+                     Height="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=RoomSize}"
+                     Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=RoomOffset}"/>
+            <Ellipse x:Name="PathWidthEllipse" Fill="#2601FFFF" Stroke="#7F000000" Width="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=PathWidth}" 
+                     Height="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=PathWidth}"
+                     Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=PathWidthOffset}"/>
+            <Ellipse x:Name="MaxPerturbEllipse" Fill="#1901FFFF" Stroke="#7F000000" Width="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=MaxPerturb}" 
+                     Height="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=MaxPerturb}"
+                     Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=PerturbOffset}"/>
+            <Ellipse x:Name="NodeEllipse" Fill="#7F5F9EA0"  Stroke="Black" Width="20" Height="20"></Ellipse>
+        </Canvas>
+    </Grid>
+</UserControl>
