@@ -45,41 +45,41 @@ namespace MapGenerator
         bool regeneratingLevel;
         bool needToRegenerateLevel;
 
-        private UserControl _selectedControl;
-        public UserControl SelectedControl
-        {
-            set
-            {
-                if (_selectedControl != null)
-                {
-                    if (_selectedControl.GetType() == typeof(MapNodeControl))
-                    {
-                        ((MapNodeControl)_selectedControl).IsSelected = false;
-                    }
-                    else if (_selectedControl.GetType() == typeof(ConnectionControl))
-                    {
-                        ((ConnectionControl)_selectedControl).IsSelected = false;
-                    }
-                }
-                if (value == null)
-                {
-                    PropertyGrid1.SelectedObject = null;
-                    _selectedControl = value;
-                }
-                else if (value.GetType() == typeof(MapNodeControl))
-                {
-                    PropertyGrid1.SelectedObject = value.DataContext;
-                    _selectedControl = value;
-                    ((MapNodeControl)_selectedControl).IsSelected = true;
-                }
-                else if (value.GetType() == typeof(ConnectionControl))
-                {
-                    PropertyGrid1.SelectedObject = value.DataContext;
-                    _selectedControl = value;
-                    ((ConnectionControl)_selectedControl).IsSelected = true;
-                }
-            }
-        }
+        private List<UserControl> _selectedControls;
+        //public UserControl SelectedControl
+        //{
+        //    set
+        //    {
+        //        if (_selectedControl != null)
+        //        {
+        //            if (_selectedControl.GetType() == typeof(MapNodeControl))
+        //            {
+        //                ((MapNodeControl)_selectedControl).IsSelected = false;
+        //            }
+        //            else if (_selectedControl.GetType() == typeof(ConnectionControl))
+        //            {
+        //                ((ConnectionControl)_selectedControl).IsSelected = false;
+        //            }
+        //        }
+        //        if (value == null)
+        //        {
+        //            PropertyGrid1.SelectedObject = null;
+        //            _selectedControl = value;
+        //        }
+        //        else if (value.GetType() == typeof(MapNodeControl))
+        //        {
+        //            PropertyGrid1.SelectedObject = value.DataContext;
+        //            _selectedControl = value;
+        //            ((MapNodeControl)_selectedControl).IsSelected = true;
+        //        }
+        //        else if (value.GetType() == typeof(ConnectionControl))
+        //        {
+        //            PropertyGrid1.SelectedObject = value.DataContext;
+        //            _selectedControl = value;
+        //            ((ConnectionControl)_selectedControl).IsSelected = true;
+        //        }
+        //    }
+        //}
         private Line _connectionLine;
         private bool _addingConnection;
 
@@ -92,6 +92,7 @@ namespace MapGenerator
 
             mapNodes = new List<MapNodeControl>();
             connections = new List<ConnectionControl>();
+            _selectedControls = new List<UserControl>();
 
             SeedTextBox.Text = Properties.Settings.Default.rngSeed.ToString();
             
@@ -111,6 +112,7 @@ namespace MapGenerator
             ImageWidthTextBox.Text = (Properties.Settings.Default.sizeMultiplier * Properties.Settings.Default.mapWidth).ToString();
             DrawSmoothCheckBox.IsChecked = Properties.Settings.Default.drawSmooth;
             DrawGridLinesCheckBox.IsChecked = Properties.Settings.Default.drawGrid;
+            WallDecalSizeTextBox.Text = Properties.Settings.Default.wallDecalSize.ToString();
             GridCellWidthTextBox.Text = Properties.Settings.Default.gridCellWidth.ToString();
             GridCellHeightTextBox.Text = Properties.Settings.Default.gridCellHeight.ToString();
             string rngSeedString = Properties.Settings.Default.rngSeed.ToString();
@@ -135,6 +137,7 @@ namespace MapGenerator
                 PixelsPerMapUnit = Properties.Settings.Default.sizeMultiplier,
                 DrawSmooth = Properties.Settings.Default.drawSmooth,
                 DrawGridLines = Properties.Settings.Default.drawGrid,
+                WallDecalSize = Properties.Settings.Default.wallDecalSize,
                 GridLineHeight = Properties.Settings.Default.gridCellWidth,
                 GridLineWidth = Properties.Settings.Default.gridCellHeight
             };
@@ -372,6 +375,24 @@ namespace MapGenerator
         {
             if (int.TryParse(BirthLimitTextBox.Text, out int newValue) && displayLevel != null)
             {
+                if (newValue > 5)
+                {
+                    BirthLimitTextBox.Text = "5";
+                    newValue = 5;
+                }
+                else if (newValue < 2)
+                {
+                    BirthLimitTextBox.Text = "2";
+                    newValue = 2;
+                }
+                if (int.TryParse(DeathLimitTextBox.Text, out int deathLimitValue))
+                {
+                    if (newValue < deathLimitValue)
+                    {
+                        DeathLimitTextBox.Text = (newValue - 1).ToString();
+                    }
+                }
+
                 displayLevel.BirthLimit = newValue;
                 RegenerateLevel();
             }
@@ -386,6 +407,24 @@ namespace MapGenerator
         {
             if (int.TryParse(DeathLimitTextBox.Text, out int newValue) && displayLevel != null)
             {
+                if (newValue > 3)
+                {
+                    DeathLimitTextBox.Text = "3";
+                    newValue = 3;
+                }
+                else if (newValue < 1)
+                {
+                    DeathLimitTextBox.Text = "1";
+                    newValue = 1;
+                }
+                if (int.TryParse(BirthLimitTextBox.Text, out int birthLimitValue))
+                {
+                    if (newValue > birthLimitValue)
+                    {
+                        BirthLimitTextBox.Text = (newValue + 1).ToString();
+                    }
+                }
+
                 displayLevel.DeathLimit = newValue;
                 RegenerateLevel();
             }
@@ -400,6 +439,17 @@ namespace MapGenerator
         {
             if (int.TryParse(ChanceToStartAliveTextBox.Text, out int newValue) && displayLevel != null)
             {
+                if (newValue < 10)
+                {
+                    ChanceToStartAliveTextBox.Text = "10";
+                    newValue = 10;
+                }
+                else if (newValue > 70)
+                {
+                    ChanceToStartAliveTextBox.Text = "70";
+                    newValue = 70;
+                }
+
                 displayLevel.ChanceToStartAlive = newValue;
                 RegenerateLevel();
             }
@@ -414,6 +464,17 @@ namespace MapGenerator
         {
             if (int.TryParse(SimStepsTextBox.Text, out int newValue) && displayLevel != null)
             {
+                if (newValue < 0)
+                {
+                    SimStepsTextBox.Text = "0";
+                    newValue = 0;
+                }
+                else if (newValue > 10)
+                {
+                    SimStepsTextBox.Text = "10";
+                    newValue = 10;
+                }
+
                 displayLevel.NumberOfSteps = newValue;
                 RegenerateLevel();
             }
@@ -648,6 +709,20 @@ namespace MapGenerator
         {
             GridCellHeightTextBox.SelectAll();
         }
+        
+        private void WallDecalSizeTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (int.TryParse(WallDecalSizeTextBox.Text, out int newValue) && displayLevel != null)
+            {
+                displayLevel.WallDecalSize = newValue;
+                RegenerateLevel();
+            }
+        }
+
+        private void WallDecalSizeTextBox_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            WallDecalSizeTextBox.SelectAll();
+        }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -750,7 +825,7 @@ namespace MapGenerator
 
         private void MapCanvas_MouseMove(object sender, MouseEventArgs e)
         {
-            if (_addingConnection && _selectedControl != null && _connectionLine != null)
+            if (_addingConnection && _selectedControls.Count > 0 && _connectionLine != null)
             {
                 //_connectionLine = new Line()
                 //{
@@ -759,9 +834,8 @@ namespace MapGenerator
                 //};
                 //MapCanvas.Children.Add(_connectionLine);
                 //Canvas.SetZIndex(_connectionLine, -1);
-
-                _connectionLine.X1 = Canvas.GetLeft(_selectedControl) + _selectedControl.ActualWidth / 2;
-                _connectionLine.Y1 = Canvas.GetTop(_selectedControl) + _selectedControl.ActualHeight / 2;
+                _connectionLine.X1 = Canvas.GetLeft(_selectedControls.Last()) + _selectedControls.Last().ActualWidth / 2;
+                _connectionLine.Y1 = Canvas.GetTop(_selectedControls.Last()) + _selectedControls.Last().ActualHeight / 2;
                 _connectionLine.X2 = e.GetPosition(MapCanvas).X;
                 _connectionLine.Y2 = e.GetPosition(MapCanvas).Y;
             }
@@ -779,13 +853,85 @@ namespace MapGenerator
             MapCanvas.Children.Add(_connectionLine);
             Canvas.SetZIndex(_connectionLine, -1);
         }
+        
+        public void SelectControl(UserControl controlToSelect, bool addToSelection)
+        {
+            if (_selectedControls.Contains(controlToSelect))
+            {
+                PropertyGrid1.SelectedObject = controlToSelect.DataContext;
+                return;
+            }
+
+            if (addToSelection && controlToSelect != null)
+            {
+                if (controlToSelect.GetType() == typeof(MapNodeControl))
+                {
+                    PropertyGrid1.SelectedObject = controlToSelect.DataContext;
+                    _selectedControls.Add(controlToSelect);
+                    ((MapNodeControl)controlToSelect).IsSelected = true;
+                }
+                else if (controlToSelect.GetType() == typeof(ConnectionControl))
+                {
+                    PropertyGrid1.SelectedObject = controlToSelect.DataContext;
+                    _selectedControls.Add(controlToSelect);
+                    ((ConnectionControl)controlToSelect).IsSelected = true;
+                }
+            }
+            else if (!addToSelection)
+            {   
+                // Remove the old selections
+                if (_selectedControls.Count > 0)
+                {
+                    foreach (UserControl control in _selectedControls)
+                    {
+                        if (control.GetType() == typeof(MapNodeControl))
+                        {
+                            ((MapNodeControl)control).IsSelected = false;
+                        }
+                        else if (control.GetType() == typeof(ConnectionControl))
+                        {
+                            ((ConnectionControl)control).IsSelected = false;
+                        }
+                    }
+                    _selectedControls.Clear();
+                }
+                if (controlToSelect == null)
+                {
+                    PropertyGrid1.SelectedObject = null;
+                    _selectedControls.Clear();
+                }
+                else if (controlToSelect.GetType() == typeof(MapNodeControl))
+                {
+                    PropertyGrid1.SelectedObject = controlToSelect.DataContext;
+                    _selectedControls.Add(controlToSelect);
+                    ((MapNodeControl)controlToSelect).IsSelected = true;
+                }
+                else if (controlToSelect.GetType() == typeof(ConnectionControl))
+                {
+                    PropertyGrid1.SelectedObject = controlToSelect.DataContext;
+                    _selectedControls.Add(controlToSelect);
+                    ((ConnectionControl)controlToSelect).IsSelected = true;
+                }
+            }
+        }
+
+        public void MoveControl(Vector movementVector, System.Windows.Point senderCanvasPosition)
+        {
+            foreach (UserControl control in _selectedControls)
+            {
+                if (control.GetType() == typeof(MapNodeControl))
+                {
+                    ((MapNodeControl)control).Move(movementVector, senderCanvasPosition);
+                }
+            }
+        }
 
         public void RemoveControl(MapNodeControl controlToRemove)
         {
             MapCanvas.Children.Remove(controlToRemove);
             controlToRemove.MapNode.PropertyChanged -= OnPropertyChanged;
             mapNodes.Remove(controlToRemove);
-            SelectedControl = null;
+            _selectedControls.Remove(controlToRemove);
             RegenerateLevel();
         }
 
@@ -794,22 +940,18 @@ namespace MapGenerator
             MapCanvas.Children.Remove(controlToRemove);
             //controlToRemove.Connection.PropertyChanged -= OnPropertyChanged;
             connections.Remove(controlToRemove);
-            SelectedControl = null;
+            _selectedControls.Remove(controlToRemove);
             RegenerateLevel();
         }
 
         private void MapCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             Keyboard.Focus(MapCanvas);
-            if (_addingConnection && e.LeftButton == MouseButtonState.Pressed && e.Source.GetType() == typeof(MapNodeControl) && e.Source != _selectedControl)
+            if (_addingConnection && e.LeftButton == MouseButtonState.Pressed && e.Source.GetType() == typeof(MapNodeControl) && e.Source != _selectedControls.Last())
             {
-                Connection newCon = new Connection((MapNode)_selectedControl.DataContext, (MapNode)((UserControl)e.Source).DataContext)
-                {
-                    PathWidth = 10,
-                    PerturbAmount = 10
-                };
-                ConnectionControl newConnection = new ConnectionControl((MapNodeControl)_selectedControl, (MapNodeControl)e.Source, newCon, GetMapCanvasRatio(), this);
-                ((MapNodeControl)_selectedControl).AddConnectionControl(newConnection);
+                Connection newCon = new Connection((MapNode)_selectedControls.Last().DataContext, (MapNode)((UserControl)e.Source).DataContext);
+                ConnectionControl newConnection = new ConnectionControl((MapNodeControl)_selectedControls.Last(), (MapNodeControl)e.Source, newCon, GetMapCanvasRatio(), this);
+                ((MapNodeControl)_selectedControls.Last()).AddConnectionControl(newConnection);
                 ((MapNodeControl)e.Source).AddConnectionControl(newConnection);
 
                 MapCanvas.Children.Add(newConnection);
@@ -828,12 +970,12 @@ namespace MapGenerator
                 _connectionLine = null;
                 _addingConnection = false;
             }
-            // Select the control if right or left mouse button is pressed and we are not adding a connection
+            // Select the control if left or right mouse button is pressed and we are not adding a connection
             else if (!_addingConnection && (e.LeftButton == MouseButtonState.Pressed || e.RightButton == MouseButtonState.Pressed))
             {
                 if (e.Source.GetType() == typeof(MapNodeControl) || e.Source.GetType() == typeof(ConnectionControl))
                 {
-                    SelectedControl = (UserControl)e.Source;
+                    SelectControl((UserControl)e.Source, Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift));
                 }
             }
         }
@@ -843,7 +985,7 @@ namespace MapGenerator
             // Deselect if we click on nothing
             if (!_addingConnection && !(e.Source.GetType() == typeof(MapNodeControl) || e.Source.GetType() == typeof(ConnectionControl)))
             {
-                SelectedControl = null;
+                SelectControl(null, Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift));
             }
         }
 
@@ -856,13 +998,19 @@ namespace MapGenerator
         {
             if (e.Key == Key.Delete)
             {
-                if (_selectedControl.GetType() == typeof(MapNodeControl))
-                    ((MapNodeControl)_selectedControl).Dispose();
-                else if (_selectedControl.GetType() == typeof(ConnectionControl))
-                    ((ConnectionControl)_selectedControl).Dispose();
+                if (_selectedControls.Count > 0)
+                {
+                    foreach (UserControl control in _selectedControls)
+                    {
+                        if (control.GetType() == typeof(MapNodeControl))
+                            ((MapNodeControl)control).Dispose();
+                        else if (control.GetType() == typeof(ConnectionControl))
+                            ((ConnectionControl)control).Dispose();
+                    }
+
+                    _selectedControls.Clear();
+                }
             }
         }
-
-        
     }
 }

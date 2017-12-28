@@ -24,8 +24,8 @@
         <Line x:Name="PathLine" Stroke="#7F008000" X1 ="{Binding ElementName=ConnectionLine, Path=X1}" Y1="{Binding ElementName=ConnectionLine, Path=Y1}" 
               X2="{Binding ElementName=ConnectionLine, Path=X2}" Y2="{Binding ElementName=ConnectionLine,Path=Y2}" 
               StrokeThickness="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=PathLineThickness}"></Line>
-        <Line x:Name="PerturbLine" Stroke="#3F008000"  X1 ="{Binding ElementName=ConnectionLine, Path=X1}" Y1="{Binding ElementName=ConnectionLine, Path=Y1}" 
+        <!--<Line x:Name="PerturbLine" Stroke="#3F008000"  X1 ="{Binding ElementName=ConnectionLine, Path=X1}" Y1="{Binding ElementName=ConnectionLine, Path=Y1}" 
               X2="{Binding ElementName=ConnectionLine, Path=X2}" Y2="{Binding ElementName=ConnectionLine,Path=Y2}" 
-              StrokeThickness="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=PerturbLineThickness}"></Line>
+              StrokeThickness="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=PerturbLineThickness}"></Line>-->
     </Grid>
 </UserControl>

@@ -124,6 +124,7 @@ namespace MapGenerator
         {
             InitializeComponent();
 
+            _isDragging = false;
             _connections = new List<ConnectionControl>();
             MapNode = node;
             _canvasSizeRatio = canvasRatio;
@@ -132,51 +133,94 @@ namespace MapGenerator
 
         private void UserControl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            _isDragging = true;
-            UserControl draggableControl = sender as UserControl;
-            _clickPosition = e.GetPosition(this);
-            draggableControl.CaptureMouse();
+            if (sender == this)
+            {
+                _isDragging = true;
+                UserControl draggableControl = sender as UserControl;
+                _clickPosition = e.GetPosition(this);
+                draggableControl.CaptureMouse();
+            }
         }
 
         private void UserControl_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            _isDragging = false;
-            UserControl draggable = sender as UserControl;
-            draggable.ReleaseMouseCapture();
+            if (sender == this)
+            {
+                _isDragging = false;
+                UserControl draggable = sender as UserControl;
+                draggable.ReleaseMouseCapture();
+            }
         }
 
         private void UserControl_MouseMove(object sender, MouseEventArgs e)
         {
-            UserControl draggableControl = sender as UserControl;
-
-            if (_isDragging && draggableControl != null)
+            if (sender == this)
             {
-                Point currentPosition = e.GetPosition(base.Parent as UIElement);
-                
-                FrameworkElement parent = base.Parent as FrameworkElement;
-                if (double.IsNaN(currentPosition.X))
-                    currentPosition.X = 0;
-                if (double.IsNaN(currentPosition.Y))
-                    currentPosition.Y = 0;
+                UserControl draggableControl = sender as UserControl;
 
-                Point newPosition = new Point(currentPosition.X - _clickPosition.X, currentPosition.Y - _clickPosition.Y);
+                if (_isDragging && draggableControl != null)
+                {
+                    Point currentPosition = e.GetPosition(base.Parent as UIElement);
+                    Point canvasPosition = new Point(Canvas.GetLeft(this), Canvas.GetTop(this));
 
-                if (newPosition.X < 0)
-                    newPosition.X = 0;
-                if (newPosition.Y < 0)
-                    newPosition.Y = 0;
-                if (newPosition.X > parent.ActualWidth - base.ActualWidth)
-                    newPosition.X = parent.ActualWidth - base.ActualWidth;
-                if (newPosition.Y > parent.ActualHeight - base.ActualHeight)
-                    newPosition.Y = parent.ActualHeight - base.ActualHeight;
+                    FrameworkElement parent = base.Parent as FrameworkElement;
+                    if (double.IsNaN(currentPosition.X))
+                        currentPosition.X = 0;
+                    if (double.IsNaN(currentPosition.Y))
+                        currentPosition.Y = 0;
 
-                Canvas.SetLeft(this, newPosition.X);
-                Canvas.SetTop(this, newPosition.Y);
+                    Point newPosition = new Point(currentPosition.X - _clickPosition.X, currentPosition.Y - _clickPosition.Y);
 
-                MapNode.XPosition = (int)Math.Round(newPosition.X);
-                MapNode.YPosition = (int)Math.Round(newPosition.Y);
-                MapNode.TruePosition = new System.Drawing.Point((int)Math.Round(newPosition.X / _canvasSizeRatio), (int)Math.Round(newPosition.Y / _canvasSizeRatio));
+                    if (newPosition.X < 0)
+                        newPosition.X = 0;
+                    if (newPosition.Y < 0)
+                        newPosition.Y = 0;
+                    if (newPosition.X > parent.ActualWidth - base.ActualWidth)
+                        newPosition.X = parent.ActualWidth - base.ActualWidth;
+                    if (newPosition.Y > parent.ActualHeight - base.ActualHeight)
+                        newPosition.Y = parent.ActualHeight - base.ActualHeight;
+
+                    MainWindow window = (MainWindow)Window.GetWindow(this);
+
+                    window.MoveControl(new Vector(newPosition.X, newPosition.Y), canvasPosition);
+
+                    //Canvas.SetLeft(this, newPosition.X);
+                    //Canvas.SetTop(this, newPosition.Y);
+
+                    //MapNode.XPosition = (int)Math.Round(newPosition.X);
+                    //MapNode.YPosition = (int)Math.Round(newPosition.Y);
+                    //MapNode.TruePosition = new System.Drawing.Point((int)Math.Round(newPosition.X / _canvasSizeRatio), (int)Math.Round(newPosition.Y / _canvasSizeRatio));
+                }
             }
+        }
+
+        public void Move(Vector movementVector, Point senderCanvasPosition)
+        {
+            Point currentPosition = new Point(Canvas.GetLeft(this), Canvas.GetTop(this));
+
+            FrameworkElement parent = base.Parent as FrameworkElement;
+            if (double.IsNaN(currentPosition.X))
+                currentPosition.X = 0;
+            if (double.IsNaN(currentPosition.Y))
+                currentPosition.Y = 0;
+
+            Point newPosition = new Point(currentPosition.X - senderCanvasPosition.X + movementVector.X, currentPosition.Y - senderCanvasPosition.Y + movementVector.Y);
+
+            if (newPosition.X < 0)
+                newPosition.X = 0;
+            if (newPosition.Y < 0)
+                newPosition.Y = 0;
+            if (newPosition.X > parent.ActualWidth - base.ActualWidth)
+                newPosition.X = parent.ActualWidth - base.ActualWidth;
+            if (newPosition.Y > parent.ActualHeight - base.ActualHeight)
+                newPosition.Y = parent.ActualHeight - base.ActualHeight;
+
+            Canvas.SetLeft(this, newPosition.X);
+            Canvas.SetTop(this, newPosition.Y);
+
+            MapNode.XPosition = (int)Math.Round(newPosition.X);
+            MapNode.YPosition = (int)Math.Round(newPosition.Y);
+            MapNode.TruePosition = new System.Drawing.Point((int)Math.Round(newPosition.X / _canvasSizeRatio), (int)Math.Round(newPosition.Y / _canvasSizeRatio));
         }
 
         private void AddConnectionMenuItem_Click(object sender, RoutedEventArgs e)

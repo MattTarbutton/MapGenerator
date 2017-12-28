@@ -98,6 +98,7 @@ namespace MapGenerator
         private RoomType _room;
         [Category("Room")]
         [DisplayName("Room")]
+        [Description("The skeleton of the room represented by a letter than most closely represents its shape.")]
         public RoomType Room
         {
             get { return _room; }
@@ -114,6 +115,7 @@ namespace MapGenerator
         private int _roomSize;
         [Category("Room")]
         [DisplayName("Room Size")]
+        [Description("Relative room size in cells, the actual room may be smaller or larger.")]
         public int RoomSize
         {
             get { return _roomSize; }
@@ -130,6 +132,7 @@ namespace MapGenerator
         private int _pathWidth;
         [Category("Room")]
         [DisplayName("PathWidth")]
+        [Description("Relative path width in cells, the actual path width may be smaller or larger.")]
         public int PathWidth
         {
             get { return _pathWidth; }
@@ -146,6 +149,7 @@ namespace MapGenerator
         private int _maxPerturb;
         [Category("Room")]
         [DisplayName("Max Perturb Amount")]
+        [Description("The position of the node is randomly adjusted within the range given by this value.")]
         public int MaxPerturb
         {
             get { return _maxPerturb; }
@@ -153,7 +157,7 @@ namespace MapGenerator
             {
                 if (value == _maxPerturb)
                     return;
-
+                
                 _maxPerturb = value;
                 OnPropertyChanged();
             }

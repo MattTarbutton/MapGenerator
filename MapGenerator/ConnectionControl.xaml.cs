@@ -75,7 +75,7 @@ namespace MapGenerator
 
         public double SelectionRectangleHeight
         {
-            get { return PerturbLineThickness; }
+            get { return PathLineThickness; }
         }
 
         public Thickness SelectionRectangleOffset
@@ -96,7 +96,7 @@ namespace MapGenerator
 
         public double SelectionLineThickness
         {
-            get { return (_connection.PathWidth + _connection.PerturbAmount + 2) * _canvasSizeRatio * 2; }
+            get { return (_connection.PathWidth + 2) * _canvasSizeRatio * 2; }
         }
 
         public double PathLineThickness
@@ -165,7 +165,7 @@ namespace MapGenerator
         public void UpdateBindings()
         {
             PathLine.GetBindingExpression(Line.StrokeThicknessProperty).UpdateTarget();
-            PerturbLine.GetBindingExpression(Line.StrokeThicknessProperty).UpdateTarget();
+            //PerturbLine.GetBindingExpression(Line.StrokeThicknessProperty).UpdateTarget();
             SelectionRectangle.GetBindingExpression(Rectangle.WidthProperty).UpdateTarget();
             SelectionRectangle.GetBindingExpression(Rectangle.HeightProperty).UpdateTarget();
             SelectionRectangle.GetBindingExpression(Rectangle.MarginProperty).UpdateTarget();

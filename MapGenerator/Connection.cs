@@ -24,6 +24,7 @@ namespace MapGenerator
         private int _pathWidth;
         [Category("Path")]
         [DisplayName("Path Width")]
+        [Description("Relative width of the path in cells, the actual path width may be smaller or larger.")]
         public int PathWidth
         {
             get { return _pathWidth; }
@@ -40,6 +41,7 @@ namespace MapGenerator
         private int _perturbAmount;
         [Category("Path")]
         [DisplayName("Max Perturb")]
+        [Description("A higher value attemps to allow the path to wander more than a smaller value. Min 5 Max 25.")]
         public int PerturbAmount
         {
             get { return _perturbAmount; }
@@ -47,6 +49,15 @@ namespace MapGenerator
             {
                 if (value == _perturbAmount)
                     return;
+
+                if (value < 5)
+                {
+                    value = 5;
+                }
+                else if (value > 25)
+                {
+                    value = 25;
+                }
 
                 _perturbAmount = value;
                 OnPropertyChanged();
@@ -72,6 +83,7 @@ namespace MapGenerator
         private ConnectionType _pathType;
         [Category("Path")]
         [DisplayName("Path Type")]
+        [Description("Force a straight path or allow some wandering.")]
         public ConnectionType PathType
         {
             get { return _pathType; }
@@ -93,7 +105,8 @@ namespace MapGenerator
             node2.PositionChanged += OnPositionChanged;
 
             //_chanceToStartAlive = 45;
-            _pathWidth = 6;
+            _pathWidth = 10;
+            _perturbAmount = 20;
             _pathType = ConnectionType.RandomWalk;
         }
 

@@ -101,6 +101,12 @@ namespace MapGenerator
             get { return _drawGridLines; }
             set { _drawGridLines = value; }
         }
+        private int _wallDecalSize;
+        public int WallDecalSize
+        {
+            get { return _wallDecalSize; }
+            set { _wallDecalSize = value; }
+        }
         private int _gridLineWidth;
         public int GridLineWidth
         {
@@ -870,20 +876,6 @@ namespace MapGenerator
                 }
             }
 
-            // Add a decal for walls
-            foreach (Point p in wallPoints)
-            {
-                Color lightGray = Color.FromArgb(40, Color.LightGray);
-                Color darkGray = Color.FromArgb(40, Color.DarkGray);
-
-                // Fake a gradient by drawing repeated low alpha circles that get bigger each time
-                for (int i = 0; i < horizontalScale * 2; i++)
-                {
-                    float j = i * horizontalScale / verticalScale;
-                    g.FillEllipse(new HatchBrush(HatchStyle.DiagonalCross, darkGray, lightGray), p.X * horizontalScale - i * 0.75f, p.Y * verticalScale - j * 0.75f, 2.0f * i, 2.0f * j);
-                }
-            }
-
             List<Point> connectedPoints = new List<Point>();
             List<List<Point>> paths = new List<List<Point>>();
 
@@ -898,6 +890,16 @@ namespace MapGenerator
                     continue;
                 }
                 Point lastVertex = GetSingleNeighborStartPoint(currentPoint, map, horizontalScale, verticalScale);
+                if (lastVertex.X == -1 && lastVertex.Y == -1)
+                {
+                    singleNeighbor.Remove(currentPoint);
+                    if (openSet.Contains(UniquePointHashCode(currentPoint, map)))
+                    {
+                        openSet.Remove(UniquePointHashCode(currentPoint, map));
+                    }
+                    continue;
+                }
+
                 connectedPoints.Add(lastVertex);
                 connectedPoints.AddRange(GetPoints(currentPoint, lastVertex, map, horizontalScale, verticalScale));
                 lastVertex = connectedPoints[connectedPoints.Count - 1];
@@ -943,20 +945,24 @@ namespace MapGenerator
                 }
 
                 // Add extra points if we aren't at the correct multiple of points for the drawing type
-                if (drawSmooth)
-                {
-                    while (connectedPoints.Count % 3 != 1)
-                        connectedPoints.Add(connectedPoints[connectedPoints.Count - 1]);
+                //if (drawSmooth)
+                //{
+                // If there are only 4 or less points, skip this, as it is too small to draw a bezier curve
+                if (connectedPoints.Count <= 4)
+                    continue;
 
-                    // If there are only 4 or less points, skip this, as it is too small to draw a bezier curve
-                    if (connectedPoints.Count <= 4)
-                        continue;
-                }
-                else
-                {
-                    if (connectedPoints.Count % 2 > 0)
-                        connectedPoints.Add(connectedPoints[connectedPoints.Count - 1]);
-                }
+                while (connectedPoints.Count % 3 != 1)
+                    connectedPoints.Add(connectedPoints[connectedPoints.Count - 1]);
+                //}
+                //else
+                //{
+                //    while (connectedPoints.Count % 2 > 0 && connectedPoints.Count % 3 != 1)
+                //        connectedPoints.Add(connectedPoints[connectedPoints.Count - 1]);
+
+                //    // If there are only 4 or less points, skip this, as it is too small to draw a bezier curve
+                //    if (connectedPoints.Count <= 4)
+                //        continue;
+                //}
 
                 paths.Add(new List<Point>(connectedPoints));
 
@@ -1028,23 +1034,52 @@ namespace MapGenerator
                 connectedPoints.Add(new Point(connectedPoints[0].X, connectedPoints[0].Y));
 
                 // Add extra points if we aren't at the correct multiple of points for the drawing type
-                if (drawSmooth)
-                {
-                    while (connectedPoints.Count % 3 != 1)
-                        connectedPoints.Add(connectedPoints[connectedPoints.Count - 1]);
+                //if (drawSmooth)
+                //{
+                // If there are only 4 or less points, skip this, as it is too small to draw a bezier curve
+                if (connectedPoints.Count <= 4)
+                    continue;
 
-                    // If there are only 4 or less points, skip this, as it is too small to draw a bezier curve
-                    if (connectedPoints.Count <= 4)
-                        continue;
-                }
-                else
-                {
-                    if (connectedPoints.Count % 2 > 0)
-                        connectedPoints.Add(connectedPoints[connectedPoints.Count - 1]);
-                }
+                while (connectedPoints.Count % 3 != 1)
+                    connectedPoints.Add(connectedPoints[connectedPoints.Count - 1]);
+                //}
+                //else
+                //{
+                //    while (connectedPoints.Count % 2 > 0 && connectedPoints.Count % 3 != 1)
+                //        connectedPoints.Add(connectedPoints[connectedPoints.Count - 1]);
+
+                //    // If there are only 4 or less points, skip this, as it is too small to draw a bezier curve
+                //    if (connectedPoints.Count <= 4)
+                //        continue;
+                //}
                 paths.Add(new List<Point>(connectedPoints));
                 
                 connectedPoints.Clear();
+            }
+
+            // Add a decal for walls
+            if (WallDecalSize > 0)
+            {
+                int step = Math.Min(40, 255 / WallDecalSize);
+                int numberOfSteps = 255 / step;
+                float decalSizePerStep = ((float)WallDecalSize / (float)numberOfSteps);
+                Color lightGray = Color.FromArgb(numberOfSteps, Color.LightGray);
+                Color darkGray = Color.FromArgb(numberOfSteps, Color.DarkGray);
+                foreach (List<Point> path in paths)
+                {
+                    byte[] types = new byte[path.Count];
+                    types[0] = (byte)PathPointType.Start;
+                    for (int i = 1; i < types.Length; i++)
+                    {
+                        types[i] = (byte)PathPointType.Bezier;
+                    }
+
+                    GraphicsPath newPath = new GraphicsPath(path.ToArray(), types);
+                    for (int i = 0; i < numberOfSteps; i++)
+                    {
+                        g.DrawPath(new Pen(new HatchBrush(HatchStyle.DiagonalCross, darkGray, lightGray), i * decalSizePerStep), newPath);
+                    }
+                }
             }
 
             // Add a filled path to get rid of the inside of the path
@@ -2394,7 +2429,7 @@ namespace MapGenerator
                 //else
                 //    return new Point(x, y);
                 Console.WriteLine("Error in start vertex");
-                return new Point();
+                return new Point(-1, -1);
             }
             else if (!northWall && eastWall && !southWall && !westWall)
             {
@@ -2404,7 +2439,7 @@ namespace MapGenerator
                 //else
                 //    return new Point(x + horizontalScale, y);
                 Console.WriteLine("Error in start vertex");
-                return new Point();
+                return new Point(-1, -1);
             }
             else if (northWall && !eastWall && !southWall && !westWall)
             {
@@ -2414,7 +2449,7 @@ namespace MapGenerator
                 //else
                 //    return new Point[] { new Point(x + halfHorizontal, y + halfVertical), new Point(x, y + verticalScale) };
                 Console.WriteLine("Error in start vertex");
-                return new Point();
+                return new Point(-1, -1);
             }
             else if (!northWall && !eastWall && !southWall && westWall)
             {
@@ -2424,7 +2459,7 @@ namespace MapGenerator
                 //else
                 //    return new Point[] { new Point(x + halfHorizontal, y + halfVertical), new Point(x, y) };
                 Console.WriteLine("Error in start vertex");
-                return new Point();
+                return new Point(-1, -1);
             }
             else if (!northWall && eastWall && southWall && westWall)
             {
@@ -2470,7 +2505,7 @@ namespace MapGenerator
                 //else
                 //    return new Point[] { new Point(x + horizontalScale, y) };
                 Console.WriteLine("Error in start vertex");
-                return new Point();
+                return new Point(-1, -1);
             }
             else if (!northWall && eastWall && !southWall && westWall)
             {
@@ -2485,12 +2520,12 @@ namespace MapGenerator
                 //else
                 //    return new Point[] { new Point(x, y + verticalScale) };
                 Console.WriteLine("Error in start vertex");
-                return new Point();
+                return new Point(-1, -1);
             }
             else
             {
                 Console.WriteLine("Error in start vertex");
-                return new Point();
+                return new Point(-1, -1);
             }
         }
 
@@ -2828,7 +2863,7 @@ namespace MapGenerator
                 {
                     Point node0Location = c.GetNodeTrueLocation(0);
                     Point node1Location = c.GetNodeTrueLocation(1);
-                    AddRandomWalkPath(map, new Vector2i(node0Location.X, node0Location.Y), new Vector2i(node1Location.X, node1Location.Y), c.PathWidth);
+                    AddRandomWalkPath(map, new Vector2i(node0Location.X, node0Location.Y), new Vector2i(node1Location.X, node1Location.Y), c.PathWidth, c.PerturbAmount);
                 }
                 else if (c.PathType == ConnectionType.Straight)
                 {
@@ -3847,7 +3882,7 @@ namespace MapGenerator
 
             while ((prevStartPoint.x != prevEndPoint.x || prevStartPoint.y != prevEndPoint.y) && count < 10000)
             {
-                Direction direction = GetRandomDirection(prevStartPoint, prevEndPoint, startDistance);
+                Direction direction = GetRandomDirection(prevStartPoint, prevEndPoint, startDistance, 20);
 
                 Vector2i newStartPoint = prevStartPoint + GetDirectionMovement(direction);
 
@@ -3860,7 +3895,7 @@ namespace MapGenerator
                 if (prevStartPoint.x == prevEndPoint.x && prevStartPoint.y == prevEndPoint.y)
                     break;
 
-                direction = GetRandomDirection(prevEndPoint, prevStartPoint, startDistance);
+                direction = GetRandomDirection(prevEndPoint, prevStartPoint, startDistance, 20);
 
                 Vector2i newEndPoint = prevEndPoint + GetDirectionMovement(direction);
 
@@ -3953,7 +3988,7 @@ namespace MapGenerator
 
             while ((prevStartPoint.x != prevEndPoint.x || prevStartPoint.y != prevEndPoint.y) && count < 10000)
             {
-                Direction direction = GetRandomDirection(prevStartPoint, prevEndPoint, startDistance);
+                Direction direction = GetRandomDirection(prevStartPoint, prevEndPoint, startDistance, 20);
 
                 Vector2i newStartPoint = prevStartPoint + GetDirectionMovement(direction);
 
@@ -3970,7 +4005,7 @@ namespace MapGenerator
                 if (prevStartPoint.x == prevEndPoint.x && prevStartPoint.y == prevEndPoint.y)
                     break;
 
-                direction = GetRandomDirection(prevEndPoint, prevStartPoint, startDistance);
+                direction = GetRandomDirection(prevEndPoint, prevStartPoint, startDistance, 20);
 
                 Vector2i newEndPoint = prevEndPoint + GetDirectionMovement(direction);
 
@@ -3993,7 +4028,7 @@ namespace MapGenerator
         /// <param name="startPoint"></param>
         /// <param name="endPoint"></param>
         /// <returns></returns>
-        private int[,] AddRandomWalkPath(int[,] map, Vector2i startPoint, Vector2i endPoint, int pathWidth)
+        private int[,] AddRandomWalkPath(int[,] map, Vector2i startPoint, Vector2i endPoint, int pathWidth, int driftValue)
         {
             int count = 0;
 
@@ -4007,7 +4042,7 @@ namespace MapGenerator
             while ((prevStartPoint.x != prevEndPoint.x || prevStartPoint.y != prevEndPoint.y) && count < 10000)
             {
                 // Get a weighted random direction that tends to move the start and end points closer together
-                Direction direction = GetRandomDirection(prevStartPoint, prevEndPoint, startDistance);
+                Direction direction = GetRandomDirection(prevStartPoint, prevEndPoint, startDistance, driftValue);
 
                 Vector2i newStartPoint = prevStartPoint + GetDirectionMovement(direction);
 
@@ -4021,7 +4056,7 @@ namespace MapGenerator
                     break;
 
                 // Get a weighted random direction that tends to move the start and end points closer together
-                direction = GetRandomDirection(prevEndPoint, prevStartPoint, startDistance);
+                direction = GetRandomDirection(prevEndPoint, prevStartPoint, startDistance, driftValue);
 
                 Vector2i newEndPoint = prevEndPoint + GetDirectionMovement(direction);
 
@@ -4063,7 +4098,7 @@ namespace MapGenerator
             }
         }
 
-        private Direction GetRandomDirection(Vector2i currentPoint, Vector2i targetPoint, float startDistance)
+        private Direction GetRandomDirection(Vector2i currentPoint, Vector2i targetPoint, float startDistance, int driftValue)
         {
             int northChance = 0;
             int eastChance = 0;
@@ -4076,14 +4111,14 @@ namespace MapGenerator
             float distanceRatio = (float)Math.Min(1, distanceMag / startDistance);
             int yOverX;
             int xOverY;
-            int driftAmount = 20;
-            int convergeAmount = 20;
+            int driftAmount = Math.Max(1, Math.Min(25, driftValue));
+            int convergeAmount = Math.Max(10, Math.Min(25, driftValue));
 
             // Clamp the drift to a maximum, and take the maximum if we would divide by zero
-            //yOverX = Mathf.Abs(distance.x) > 0 ? Mathf.Min(driftAmount, Mathf.Abs(Mathf.RoundToInt(driftAmount * distance.y / distance.x))) : driftAmount;
-            //xOverY = Mathf.Abs(distance.y) > 0 ? Mathf.Min(driftAmount, Mathf.Abs(Mathf.RoundToInt(driftAmount * distance.x / distance.y))) : driftAmount;
-            yOverX = Math.Abs(distance.x) > 0 ? Math.Min(driftAmount, Math.Abs((int)Math.Round((float)distance.y / distance.x))) : driftAmount;
-            xOverY = Math.Abs(distance.y) > 0 ? Math.Min(driftAmount, Math.Abs((int)Math.Round((float)distance.x / distance.y))) : driftAmount;
+            yOverX = Math.Abs(distance.x) > 0 ? Math.Min(1, Math.Abs((int)Math.Round((float)distance.y / distance.x))) : driftAmount;
+            xOverY = Math.Abs(distance.y) > 0 ? Math.Min(1, Math.Abs((int)Math.Round((float)distance.x / distance.y))) : driftAmount;
+            //yOverX = Math.Abs(distance.x) > 0 ? Math.Min(driftAmount, Math.Abs((int)Math.Round((float)distance.y / distance.x))) : driftAmount;
+            //xOverY = Math.Abs(distance.y) > 0 ? Math.Min(driftAmount, Math.Abs((int)Math.Round((float)distance.x / distance.y))) : driftAmount;
 
             // Equation for the greater chance is: 25 + (ConvergeAmount * (1 - distance / distanceMax) ^ 2) + driftAmount * (distance / distanceMax) ^ 2 * axisDistance / otherAxisDistance
             // 25 is the base that we can't go lower than. ConvergeAmount makes the two paths converge when they get closer to each other , and drift amount adds drift if the axis is smaller 

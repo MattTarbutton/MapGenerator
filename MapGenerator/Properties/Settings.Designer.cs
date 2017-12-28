@@ -226,5 +226,17 @@ namespace MapGenerator.Properties {
                 this["selectedMapType"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("20")]
+        public int wallDecalSize {
+            get {
+                return ((int)(this["wallDecalSize"]));
+            }
+            set {
+                this["wallDecalSize"] = value;
+            }
+        }
     }
 }
