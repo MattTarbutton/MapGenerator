@@ -566,7 +566,7 @@ namespace MapGenerator
                 }
                 if (int.TryParse(MapHeightTextBox.Text, out int mapHeight))
                 {
-                    ImageHeightTextBox.Text = (newValue * mapWidth).ToString();
+                    ImageHeightTextBox.Text = (newValue * mapHeight).ToString();
                 }
                 else
                 {

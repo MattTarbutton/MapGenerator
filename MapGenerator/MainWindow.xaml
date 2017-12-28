@@ -103,7 +103,7 @@
                     <StackPanel Orientation="Vertical">
                         <TextBlock Margin="0,2,0,0">Line Size:</TextBlock>
                         <TextBlock Margin="0,2,0,0">Size Multiplier:</TextBlock>
-                        <TextBlock Margin="0,2,0,0">Image Size:</TextBlock>
+                        <TextBlock Margin="0,2,0,0">Image Width:</TextBlock>
                         <TextBlock Margin="0,2,0,0">Image Height:</TextBlock>
                         <TextBlock x:Name="WallDecalSizeTextBlock" Margin="0,2,0,0">Wall Decal Size:</TextBlock>
                         <CheckBox x:Name="DrawSmoothCheckBox" Margin="0,2,0,0" TabIndex="14" Content="Smooth Lines" Click="DrawSmoothCheckBox_Click" IsChecked="True"/>
