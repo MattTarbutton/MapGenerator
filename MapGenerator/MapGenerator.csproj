@@ -61,6 +61,7 @@
     <Compile Include="ConnectionControl.xaml.cs">
       <DependentUpon>ConnectionControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="AddNodeContextMenuEnabledConverter.cs" />
     <Compile Include="MapNode.cs" />
     <Compile Include="MapNodeControl.xaml.cs">
       <DependentUpon>MapNodeControl.xaml</DependentUpon>

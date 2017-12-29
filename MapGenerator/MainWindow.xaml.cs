@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -25,7 +26,7 @@ namespace MapGenerator
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
         public enum MapType : int
         {
@@ -39,56 +40,41 @@ namespace MapGenerator
         }
 
         Level displayLevel;
-        public MapType SelectedMapType { get; set; }
+        private MapType _selectedMapType;
+        public MapType SelectedMapType
+        {
+            get { return _selectedMapType; }
+            set
+            {
+                _selectedMapType = value;
+                OnPropertyChanged(this, new PropertyChangedEventArgs("SelectedMapType"));
+            }
+        }
         List<MapNodeControl> mapNodes;
         List<ConnectionControl> connections;
         bool regeneratingLevel;
         bool needToRegenerateLevel;
 
         private List<UserControl> _selectedControls;
-        //public UserControl SelectedControl
-        //{
-        //    set
-        //    {
-        //        if (_selectedControl != null)
-        //        {
-        //            if (_selectedControl.GetType() == typeof(MapNodeControl))
-        //            {
-        //                ((MapNodeControl)_selectedControl).IsSelected = false;
-        //            }
-        //            else if (_selectedControl.GetType() == typeof(ConnectionControl))
-        //            {
-        //                ((ConnectionControl)_selectedControl).IsSelected = false;
-        //            }
-        //        }
-        //        if (value == null)
-        //        {
-        //            PropertyGrid1.SelectedObject = null;
-        //            _selectedControl = value;
-        //        }
-        //        else if (value.GetType() == typeof(MapNodeControl))
-        //        {
-        //            PropertyGrid1.SelectedObject = value.DataContext;
-        //            _selectedControl = value;
-        //            ((MapNodeControl)_selectedControl).IsSelected = true;
-        //        }
-        //        else if (value.GetType() == typeof(ConnectionControl))
-        //        {
-        //            PropertyGrid1.SelectedObject = value.DataContext;
-        //            _selectedControl = value;
-        //            ((ConnectionControl)_selectedControl).IsSelected = true;
-        //        }
-        //    }
-        //}
         private Line _connectionLine;
         private bool _addingConnection;
 
+        private bool _mouseDownInCanvas;
+        private double _dragStartThreshold = 20;
+        private System.Windows.Shapes.Rectangle _selectionRect;
+        private System.Windows.Point _selectionRectStart;
+        private bool _areaSelecting;
+
         public delegate void MapCanvasRatioChangedEventHandler(double newRatio);
         public event MapCanvasRatioChangedEventHandler MapCanvasRatioChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public MainWindow()
         {
             InitializeComponent();
+
+            //NameScope.SetNameScope(AddNodeContextMenu, NameScope.GetNameScope(this));
+            MapCanvas.DataContext = this;
 
             mapNodes = new List<MapNodeControl>();
             connections = new List<ConnectionControl>();
@@ -157,6 +143,14 @@ namespace MapGenerator
             newControl.MapNode.PropertyChanged += OnPropertyChanged;
             mapNodes.Add(newControl);
             PropertyGrid1.SelectedObject = newNode;
+
+            _selectionRect = new System.Windows.Shapes.Rectangle()
+            {
+                Stroke = System.Windows.Media.Brushes.Blue,
+                Fill = new SolidColorBrush(System.Windows.Media.Color.FromArgb(40, 0, 0, 255)),
+                Visibility = Visibility.Collapsed,
+            };
+            MapCanvas.Children.Add(_selectionRect);
         }
 
         private void RegenerateLevel()
@@ -439,15 +433,15 @@ namespace MapGenerator
         {
             if (int.TryParse(ChanceToStartAliveTextBox.Text, out int newValue) && displayLevel != null)
             {
-                if (newValue < 10)
+                if (newValue < 0)
                 {
-                    ChanceToStartAliveTextBox.Text = "10";
-                    newValue = 10;
+                    ChanceToStartAliveTextBox.Text = "0";
+                    newValue = 0;
                 }
-                else if (newValue > 70)
+                else if (newValue > 100)
                 {
-                    ChanceToStartAliveTextBox.Text = "70";
-                    newValue = 70;
+                    ChanceToStartAliveTextBox.Text = "100";
+                    newValue = 100;
                 }
 
                 displayLevel.ChanceToStartAlive = newValue;
@@ -823,24 +817,6 @@ namespace MapGenerator
             RegenerateLevel();
         }
 
-        private void MapCanvas_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (_addingConnection && _selectedControls.Count > 0 && _connectionLine != null)
-            {
-                //_connectionLine = new Line()
-                //{
-                //    Stroke = System.Windows.Media.Brushes.Green,
-                //    IsHitTestVisible = false
-                //};
-                //MapCanvas.Children.Add(_connectionLine);
-                //Canvas.SetZIndex(_connectionLine, -1);
-                _connectionLine.X1 = Canvas.GetLeft(_selectedControls.Last()) + _selectedControls.Last().ActualWidth / 2;
-                _connectionLine.Y1 = Canvas.GetTop(_selectedControls.Last()) + _selectedControls.Last().ActualHeight / 2;
-                _connectionLine.X2 = e.GetPosition(MapCanvas).X;
-                _connectionLine.Y2 = e.GetPosition(MapCanvas).Y;
-            }
-        }
-
         public void AddConnectionStart(UserControl startControl)
         {
             _addingConnection = true;
@@ -943,6 +919,70 @@ namespace MapGenerator
             _selectedControls.Remove(controlToRemove);
             RegenerateLevel();
         }
+        
+        private void MapCanvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (_addingConnection && _selectedControls.Count > 0 && _connectionLine != null)
+            {
+                //_connectionLine = new Line()
+                //{
+                //    Stroke = System.Windows.Media.Brushes.Green,
+                //    IsHitTestVisible = false
+                //};
+                //MapCanvas.Children.Add(_connectionLine);
+                //Canvas.SetZIndex(_connectionLine, -1);
+                _connectionLine.X1 = Canvas.GetLeft(_selectedControls.Last()) + _selectedControls.Last().ActualWidth / 2;
+                _connectionLine.Y1 = Canvas.GetTop(_selectedControls.Last()) + _selectedControls.Last().ActualHeight / 2;
+                _connectionLine.X2 = e.GetPosition(MapCanvas).X;
+                _connectionLine.Y2 = e.GetPosition(MapCanvas).Y;
+            }
+            else if (_areaSelecting)
+            {
+                System.Windows.Point mousePosition = e.GetPosition(MapCanvas);
+                UpdateDragSelectionRect(mousePosition, _selectionRectStart);
+            }
+            else if (_mouseDownInCanvas)
+            {
+                System.Windows.Point mousePosition = e.GetPosition(MapCanvas);
+                Vector dragDelta = mousePosition - _selectionRectStart;
+                double distance = dragDelta.Length;
+                
+                if (distance > _dragStartThreshold && SelectedMapType == MapType.Custom)
+                {
+                    _areaSelecting = true;
+                    _selectionRect.Visibility = Visibility.Visible;
+                    UpdateDragSelectionRect(mousePosition, _selectionRectStart);
+                }
+            }
+        }
+
+        private void UpdateDragSelectionRect(System.Windows.Point point1, System.Windows.Point point2)
+        {
+            double xPos;
+            double yPos;
+
+            if (point1.X < point2.X)
+            {
+                xPos = point1.X;
+            }
+            else
+            {
+                xPos = point2.X;
+            }
+            if (point1.Y < point2.Y)
+            {
+                yPos = point1.Y;
+            }
+            else
+            {
+                yPos = point2.Y;
+            }
+
+            Canvas.SetLeft(_selectionRect, xPos);
+            Canvas.SetTop(_selectionRect, yPos);
+            _selectionRect.Width = Math.Abs(point1.X - point2.X);
+            _selectionRect.Height = Math.Abs(point1.Y - point2.Y);
+        }
 
         private void MapCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -971,27 +1011,55 @@ namespace MapGenerator
                 _addingConnection = false;
             }
             // Select the control if left or right mouse button is pressed and we are not adding a connection
-            else if (!_addingConnection && (e.LeftButton == MouseButtonState.Pressed || e.RightButton == MouseButtonState.Pressed))
+            else if (!_addingConnection && !_areaSelecting && (e.LeftButton == MouseButtonState.Pressed || e.RightButton == MouseButtonState.Pressed))
             {
                 if (e.Source.GetType() == typeof(MapNodeControl) || e.Source.GetType() == typeof(ConnectionControl))
                 {
                     SelectControl((UserControl)e.Source, Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift));
+                }
+                else if (e.Source.GetType() == typeof(Canvas) && e.LeftButton == MouseButtonState.Pressed)
+                {
+                    // Deselect if we don't have shift down
+                    SelectControl(null, Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift));
+
+                    _mouseDownInCanvas = true;
+                    _selectionRectStart = e.GetPosition(MapCanvas);
+                    MapCanvas.CaptureMouse();
                 }
             }
         }
         
         private void MapCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            // Deselect if we click on nothing
-            if (!_addingConnection && !(e.Source.GetType() == typeof(MapNodeControl) || e.Source.GetType() == typeof(ConnectionControl)))
+            if (_areaSelecting)
             {
-                SelectControl(null, Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift));
+                _areaSelecting = false;
+                SelectControlsUnderRectangle();
+                _selectionRect.Visibility = Visibility.Collapsed;
+            }
+            // Deselect if we click on nothing
+            //else if (!_addingConnection && !(e.Source.GetType() == typeof(MapNodeControl) || e.Source.GetType() == typeof(ConnectionControl)))
+            //{
+            //    SelectControl(null, Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift));
+            //}
+
+            if (_mouseDownInCanvas)
+            {
+                _mouseDownInCanvas = false;
+                MapCanvas.ReleaseMouseCapture();
             }
         }
 
         private void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            RegenerateLevel();
+            if (sender != this)
+            {
+                RegenerateLevel();
+            }
+            else
+            {
+                PropertyChanged?.Invoke(this, e);
+            }
         }
 
         private void MapCanvas_KeyDown(object sender, KeyEventArgs e)
@@ -1011,6 +1079,35 @@ namespace MapGenerator
                     _selectedControls.Clear();
                 }
             }
+        }
+
+        private void SelectControlsUnderRectangle()
+        {
+            //Rect selectionRect = _selectionRect.TransformToVisual(MapCanvas).TransformBounds(LayoutInformation.GetLayoutSlot(_selectionRect));
+            Rect selectionRect = _selectionRect.TransformToAncestor(MapCanvas).TransformBounds(new Rect(0, 0, _selectionRect.ActualWidth, _selectionRect.ActualHeight));
+
+            foreach (MapNodeControl control in mapNodes)
+            {
+                //Rect controlBounds = control.SelectionRectangle.TransformToVisual(MapCanvas).TransformBounds(LayoutInformation.GetLayoutSlot(control.SelectionRectangle));
+                Rect controlBounds = control.SelectionRectangle.TransformToAncestor(MapCanvas).TransformBounds(new Rect(0, 0, control.SelectionRectangle.ActualWidth, control.SelectionRectangle.ActualHeight));
+
+                if (selectionRect.Contains(controlBounds) || selectionRect.IntersectsWith(controlBounds))
+                {
+                    SelectControl(control, true);
+                }
+            }
+
+            // Don't add connections in area select
+            //foreach (ConnectionControl control in connections)
+            //{
+            //    //Rect controlBounds = control.SelectionRectangle.TransformToVisual(MapCanvas).TransformBounds(LayoutInformation.GetLayoutSlot(control.SelectionRectangle));
+            //    Rect controlBounds = control.SelectionRectangle.TransformToAncestor(MapCanvas).TransformBounds(new Rect(0, 0, control.SelectionRectangle.ActualWidth, control.SelectionRectangle.ActualHeight));
+
+            //    if (selectionRect.Contains(controlBounds) || selectionRect.IntersectsWith(controlBounds))
+            //    {
+            //        SelectControl(control, true);
+            //    }
+            //}
         }
     }
 }

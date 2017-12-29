@@ -7,6 +7,9 @@
         xmlns:wpg="clr-namespace:System.Windows.Controls"
         mc:Ignorable="d"
         Title="MainWindow" Height="575" Width="800" MinHeight="575" MinWidth="600" WindowStyle="ToolWindow" Closing="Window_Closing" SizeChanged="Window_SizeChanged">
+    <Window.Resources>
+        <local:AddNodeContextMenuEnabledConverter x:Key="AddNodeEnabledConverter"/>
+    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="275"/>
@@ -73,7 +76,7 @@
                         <!--<Slider Width="100" x:Name="BirthLimitSlider" TickPlacement="BottomRight" Maximum="5" Minimum="2" IsSnapToTickEnabled="True" />-->
                         <TextBox Width="100" x:Name="DeathLimitTextBox" TabIndex="7" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="DeathLimitTextBox_TextChanged" GotKeyboardFocus="DeathLimitTextBox_GotKeyboardFocus" ToolTip="How few neighbor cells must be alive to cause the cell to die. Always less than birth limit. Min 1 Max 3." />
                         <!--<Slider Width="100" x:Name="DeathLimitSlider" TickPlacement="BottomRight" Maximum="3" Minimum="1" IsSnapToTickEnabled="True"/>-->
-                        <TextBox Width="100" x:Name="ChanceToStartAliveTextBox" TabIndex="8" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="ChanceToStartAliveTextBox_TextChanged" GotKeyboardFocus="ChanceToStartAliveTextBox_GotKeyboardFocus" ToolTip="Percentage of cells along the path that start alive. Smaller values give more irregular shapes. Sweet spot is 30-50. Min 10 Max 70." />
+                        <TextBox Width="100" x:Name="ChanceToStartAliveTextBox" TabIndex="8" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="ChanceToStartAliveTextBox_TextChanged" GotKeyboardFocus="ChanceToStartAliveTextBox_GotKeyboardFocus" ToolTip="Percentage of cells along the path that start alive. Smaller values give more irregular shapes. Sweet spot is 30-50. Min 0 Max 100." />
                         <TextBox Width="100" x:Name="SimStepsTextBox" TabIndex="9" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="SimStepsTextBox_TextChanged" GotKeyboardFocus="SimStepsTextBox_GotKeyboardFocus" ToolTip="How many cellular automata steps to run. Smaller values give more irregular shapes. Min 1 Max 10." />
                     </StackPanel>
                 </Grid>
@@ -133,7 +136,8 @@
             </Border.BorderBrush>
         </Border>
         <ScrollViewer x:Name="MapScrollViewer" Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Focusable="False">
-            <Canvas x:Name="MapCanvas" Width="Auto" Height="Auto" SizeChanged="MapCanvas_SizeChanged" MouseMove="MapCanvas_MouseMove" MouseDown="MapCanvas_MouseDown" MouseLeftButtonUp="MapCanvas_MouseLeftButtonUp" KeyDown="MapCanvas_KeyDown" Focusable="True">
+            <Canvas x:Name="MapCanvas" Width="Auto" Height="Auto" SizeChanged="MapCanvas_SizeChanged" MouseMove="MapCanvas_MouseMove" MouseDown="MapCanvas_MouseDown" MouseLeftButtonUp="MapCanvas_MouseLeftButtonUp" KeyDown="MapCanvas_KeyDown" Focusable="True"
+                    ContextMenuService.IsEnabled="{Binding Path=SelectedMapType, Converter={StaticResource AddNodeEnabledConverter}}">
                 <Canvas.Background>
                     <VisualBrush Stretch="Uniform"  >
                         <VisualBrush.Visual>
