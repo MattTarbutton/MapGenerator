@@ -262,6 +262,14 @@ namespace MapGenerator
             SelectionRectangle.GetBindingExpression(Rectangle.WidthProperty).UpdateTarget();
         }
 
+        private void CopyNodeMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            string csv = "";
+            csv += "MapNodeControl," + Canvas.GetLeft(this) + "," + Canvas.GetTop(this) + "," + MapNode.GetCSV() + ",";
+
+            Clipboard.SetText(csv, TextDataFormat.CommaSeparatedValue);
+        }
+
         private void RemoveNodeMenuItem_Click(object sender, RoutedEventArgs e)
         {
             this.Dispose();

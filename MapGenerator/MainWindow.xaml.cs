@@ -65,7 +65,7 @@ namespace MapGenerator
         private System.Windows.Shapes.Rectangle _selectionRect;
         private System.Windows.Point _selectionRectStart;
         private bool _areaSelecting;
-
+        
         public delegate void MapCanvasRatioChangedEventHandler(double newRatio);
         public event MapCanvasRatioChangedEventHandler MapCanvasRatioChanged;
         public event PropertyChangedEventHandler PropertyChanged;
@@ -76,17 +76,16 @@ namespace MapGenerator
 
             //NameScope.SetNameScope(AddNodeContextMenu, NameScope.GetNameScope(this));
             MapCanvas.DataContext = this;
+            PasteNodeMenuItem.DataContext = this;
 
             mapNodes = new List<MapNodeControl>();
             connections = new List<ConnectionControl>();
             _selectedControls = new List<UserControl>();
 
-            SeedTextBox.Text = Properties.Settings.Default.rngSeed.ToString();
-
             CommandBinding PasteCmdBinding = new CommandBinding()
             {
                 Command = ApplicationCommands.Paste,
-                
+
             };
             PasteCmdBinding.Executed += PasteCmdBinding_Executed;
             PasteCmdBinding.CanExecute += PasteCmdBinding_CanExecute;
@@ -100,6 +99,7 @@ namespace MapGenerator
             CopyCmdBinding.CanExecute += CopyCmdBinding_CanExecute;
             this.CommandBindings.Add(CopyCmdBinding);
 
+            SeedTextBox.Text = Properties.Settings.Default.rngSeed.ToString();
             MapTypeComboBox.SelectedValue = (MapType)Properties.Settings.Default.selectedMapType;
             MazeRowsTextBox.Text = Properties.Settings.Default.mazeRows.ToString();
             MazeColumnsTextBox.Text = Properties.Settings.Default.mazeColumns.ToString();
@@ -145,7 +145,13 @@ namespace MapGenerator
                 WallDecalSize = Properties.Settings.Default.wallDecalSize,
                 GridLineHeight = Properties.Settings.Default.gridCellWidth,
                 GridLineWidth = Properties.Settings.Default.gridCellHeight,
-                GridLineThickness = Properties.Settings.Default.gridLineThickness
+                GridLineThickness = Properties.Settings.Default.gridLineThickness,
+                BackgroundColor = System.Drawing.Color.White,
+                WallColor = System.Drawing.Color.Black,
+                InteriorColor = System.Drawing.Color.White,
+                GridLineColor = System.Drawing.Color.Black,
+                WallDecalColor1 = System.Drawing.Color.DarkGray,
+                WallDecalColor2 = System.Drawing.Color.LightGray
             };
             //displayLevel.RegenerateLevel();
             displayLevel.OnLevelRegenerated += DisplayLevel_OnLevelRegenerated;
@@ -681,6 +687,12 @@ namespace MapGenerator
                 GridCellWidthTextBlock.BeginAnimation(TextBlock.MaxHeightProperty, anim);
                 GridCellWidthTextBox.BeginAnimation(TextBox.MaxHeightProperty, anim);
                 GridCellWidthTextBox.IsTabStop = true;
+                GridLineThicknessTextBlock.BeginAnimation(TextBlock.MaxHeightProperty, anim);
+                GridLineThicknessTextBox.BeginAnimation(TextBox.MaxHeightProperty, anim);
+                GridLineThicknessTextBox.IsTabStop = true;
+                GridLineColorTextBlock.BeginAnimation(TextBlock.MaxHeightProperty, anim);
+                GridLineColorPicker.BeginAnimation(MaxHeightProperty, anim);
+                GridLineColorPicker.IsTabStop = true;
             }
             else
             {
@@ -691,6 +703,12 @@ namespace MapGenerator
                 GridCellWidthTextBlock.BeginAnimation(TextBlock.MaxHeightProperty, anim);
                 GridCellWidthTextBox.BeginAnimation(TextBox.MaxHeightProperty, anim);
                 GridCellWidthTextBox.IsTabStop = false;
+                GridLineThicknessTextBlock.BeginAnimation(TextBlock.MaxHeightProperty, anim);
+                GridLineThicknessTextBox.BeginAnimation(TextBox.MaxHeightProperty, anim);
+                GridLineThicknessTextBox.IsTabStop = false;
+                GridLineColorTextBlock.BeginAnimation(TextBlock.MaxHeightProperty, anim);
+                GridLineColorPicker.BeginAnimation(MaxHeightProperty, anim);
+                GridLineColorPicker.IsTabStop = false;
             }
 
             RegenerateLevel();
@@ -850,6 +868,11 @@ namespace MapGenerator
             //mapNodes.Add(newControl);
             //PropertyGrid1.SelectedObject = newNode;
             //RegenerateLevel();
+        }
+        
+        private void PasteNodeMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            PasteNodeFromClipboard();
         }
 
         private void AddNodeToCanvas(MapNodeControl newControl, System.Windows.Point location)
@@ -1184,10 +1207,18 @@ namespace MapGenerator
         
         private void PasteCmdBinding_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            string csv = Clipboard.GetText(TextDataFormat.CommaSeparatedValue);
+            PasteNodeFromClipboard();
+        }
 
+        private void PasteNodeFromClipboard()
+        {
+            string csv = Clipboard.GetText(TextDataFormat.CommaSeparatedValue);
+            
             if (csv != null)
             {
+                // Deselect all controls so the new selection can be the pasted controls
+                SelectControl(null, false);
+
                 string[] values = csv.Split(',');
 
                 for (int i = 0; i < values.Length; i++)
@@ -1205,8 +1236,70 @@ namespace MapGenerator
                         MapNode newNode = new MapNode(GetMapCanvasRatio(), values, ref i);
                         MapNodeControl newControl = new MapNodeControl(newNode, GetMapCanvasRatio(), this);
                         AddNodeToCanvas(newControl, new System.Windows.Point(left, top));
+                        SelectControl(newControl, true);
+                        PropertyGrid1.SelectedObject = newNode;
                     }
                 }
+            }
+        }
+
+        private void BackgroundColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
+        {
+            if (e.NewValue != null && displayLevel != null)
+            {
+                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
+                displayLevel.BackgroundColor = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
+                RegenerateLevel();
+            }
+        }
+
+        private void WallColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
+        {
+            if (e.NewValue != null && displayLevel != null)
+            {
+                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
+                displayLevel.WallColor = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
+                RegenerateLevel();
+            }
+        }
+
+        private void InteriorColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
+        {
+            if (e.NewValue != null && displayLevel != null)
+            {
+                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
+                displayLevel.InteriorColor = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
+                RegenerateLevel();
+            }
+        }
+
+        private void GridLineColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
+        {
+            if (e.NewValue != null && displayLevel != null)
+            {
+                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
+                displayLevel.GridLineColor = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
+                RegenerateLevel();
+            }
+        }
+
+        private void WallDecalColor1Picker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
+        {
+            if (e.NewValue != null && displayLevel != null)
+            {
+                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
+                displayLevel.WallDecalColor1 = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
+                RegenerateLevel();
+            }
+        }
+
+        private void WallDecalColor2Picker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
+        {
+            if (e.NewValue != null && displayLevel != null)
+            {
+                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
+                displayLevel.WallDecalColor2 = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
+                RegenerateLevel();
             }
         }
     }

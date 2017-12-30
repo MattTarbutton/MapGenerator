@@ -11,6 +11,7 @@
             <Canvas.ContextMenu>
                 <ContextMenu>
                     <MenuItem x:Name="AddConnectionMenuItem" Header="Add Connection" Click="AddConnectionMenuItem_Click"></MenuItem>
+                    <MenuItem x:Name="CopyNodeMenuItem" Header="Copy Node" Click="CopyNodeMenuItem_Click"/>
                     <MenuItem x:Name="RemoveNodeMenuItem" Header="Delete Node" Click="RemoveNodeMenuItem_Click"/>
                 </ContextMenu>
             </Canvas.ContextMenu>

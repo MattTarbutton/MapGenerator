@@ -125,6 +125,42 @@ namespace MapGenerator
             get { return _gridLineThickness; }
             set { _gridLineThickness = value; }
         }
+        private Color _backgroundColor;
+        public Color BackgroundColor
+        {
+            get { return _backgroundColor; }
+            set { _backgroundColor = value; }
+        }
+        private Color _wallColor;
+        public Color WallColor
+        {
+            get { return _wallColor; }
+            set { _wallColor = value; }
+        }
+        private Color _interiorColor;
+        public Color InteriorColor
+        {
+            get { return _interiorColor; }
+            set { _interiorColor = value; }
+        }
+        private Color _wallDecalColor1;
+        public Color WallDecalColor1
+        {
+            get { return _wallDecalColor1; }
+            set { _wallDecalColor1 = value; }
+        }
+        private Color _wallDecalColor2;
+        public Color WallDecalColor2
+        {
+            get { return _wallDecalColor2; }
+            set { _wallDecalColor2 = value; }
+        }
+        private Color _gridLineColor;
+        public Color GridLineColor
+        {
+            get { return _gridLineColor; }
+            set { _gridLineColor = value; }
+        }
         private int _rngSeed;
         public int RngSeed
         {
@@ -853,9 +889,9 @@ namespace MapGenerator
         {
             tex = new Bitmap(map.GetLength(0) * horizontalScale, map.GetLength(1) * verticalScale);
             Graphics g = Graphics.FromImage(tex);
-            g.FillRectangle(System.Drawing.Brushes.White, 0, 0, map.GetLength(0) * horizontalScale, map.GetLength(1) * verticalScale);
+            g.FillRectangle(new SolidBrush(BackgroundColor), 0, 0, map.GetLength(0) * horizontalScale, map.GetLength(1) * verticalScale);
 
-            Pen linePen = new Pen(Color.Black, LineSize);
+            Pen linePen = new Pen(WallColor, LineSize);
 
             Hashtable openSet = new Hashtable();
             List<Point> singleNeighbor = new List<Point>();
@@ -1069,8 +1105,8 @@ namespace MapGenerator
                 int step = Math.Min(40, 255 / WallDecalSize);
                 int numberOfSteps = 255 / step;
                 float decalSizePerStep = ((float)WallDecalSize / (float)numberOfSteps);
-                Color lightGray = Color.FromArgb(numberOfSteps, Color.LightGray);
-                Color darkGray = Color.FromArgb(numberOfSteps, Color.DarkGray);
+                Color decalColor1 = Color.FromArgb(numberOfSteps, WallDecalColor1);
+                Color decalColor2 = Color.FromArgb(numberOfSteps, WallDecalColor2);
                 foreach (List<Point> path in paths)
                 {
                     byte[] types = new byte[path.Count];
@@ -1083,7 +1119,7 @@ namespace MapGenerator
                     GraphicsPath newPath = new GraphicsPath(path.ToArray(), types);
                     for (int i = 0; i < numberOfSteps; i++)
                     {
-                        g.DrawPath(new Pen(new HatchBrush(HatchStyle.DiagonalCross, darkGray, lightGray), i * decalSizePerStep), newPath);
+                        g.DrawPath(new Pen(new HatchBrush(HatchStyle.DiagonalCross, decalColor1, decalColor2), i * decalSizePerStep), newPath);
                     }
                 }
             }
@@ -1102,7 +1138,7 @@ namespace MapGenerator
                 GraphicsPath newPath = new GraphicsPath(path.ToArray(), types);
                 fillPath.AddPath(newPath, false);
             }
-            g.FillPath(Brushes.White, fillPath);
+            g.FillPath(new SolidBrush(InteriorColor), fillPath);
 
             // Draw each path starting with the largest path
             while (paths.Count > 0)
@@ -1139,7 +1175,7 @@ namespace MapGenerator
             // Draw grid lines
             if (DrawGridLines && MapWidth > GridLineWidth && MapHeight > GridLineHeight)
             {
-                Pen gridPen = new Pen(Color.Black, GridLineThickness);
+                Pen gridPen = new Pen(GridLineColor, GridLineThickness);
                 int[,] aliveGridCells = new int[Convert.ToInt32(1.0f * MapWidth / GridLineWidth), Convert.ToInt32(1.0f * MapHeight / GridLineHeight)];
                 for (int i = 0; i < map.GetLength(0); i++)
                 {
