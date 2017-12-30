@@ -689,8 +689,8 @@ namespace MapGenerator
         {
             GridCellWidthTextBox.SelectAll();
         }
-
-        private void GridCellHeightTextBox_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        
+        private void GridCellHeightTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (int.TryParse(GridCellHeightTextBox.Text, out int newValue) && displayLevel != null)
             {
@@ -699,11 +699,11 @@ namespace MapGenerator
             }
         }
 
-        private void GridCellHeightTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void GridCellHeightTextBox_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
             GridCellHeightTextBox.SelectAll();
         }
-        
+
         private void WallDecalSizeTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (int.TryParse(WallDecalSizeTextBox.Text, out int newValue) && displayLevel != null)

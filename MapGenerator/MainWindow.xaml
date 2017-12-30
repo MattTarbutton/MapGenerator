@@ -109,8 +109,8 @@
                         <TextBlock Margin="0,2,0,0">Image Width:</TextBlock>
                         <TextBlock Margin="0,2,0,0">Image Height:</TextBlock>
                         <TextBlock x:Name="WallDecalSizeTextBlock" Margin="0,2,0,0">Wall Decal Size:</TextBlock>
-                        <CheckBox x:Name="DrawSmoothCheckBox" Margin="0,2,0,0" TabIndex="14" Content="Smooth Lines" Click="DrawSmoothCheckBox_Click" IsChecked="True"/>
-                        <CheckBox x:Name="DrawGridLinesCheckBox" Margin="0,2,0,0" TabIndex="17" Content="Draw Grid Lines" Click="DrawGridLinesCheckBox_Click" IsChecked="True"/>
+                        <CheckBox x:Name="DrawSmoothCheckBox" Margin="0,2,0,0" TabIndex="15" Content="Smooth Lines" Click="DrawSmoothCheckBox_Click" IsChecked="True"/>
+                        <CheckBox x:Name="DrawGridLinesCheckBox" Margin="0,2,0,0" TabIndex="16" Content="Draw Grid Lines" Click="DrawGridLinesCheckBox_Click" IsChecked="True"/>
                         <TextBlock x:Name="GridCellWidthTextBlock" Margin="0,2,0,0">Grid Cell Width:</TextBlock>
                         <TextBlock x:Name="GridCellHeightTextBlock" Margin="0,2,0,0">Grid Cell Height:</TextBlock>
                     </StackPanel>
@@ -119,15 +119,15 @@
                         <TextBox Width="100" x:Name="SizeMultiplierTextBox" TabIndex="13" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="SizeMultiplierTextBox_TextChanged" GotKeyboardFocus="SizeMultiplierTextBox_GotKeyboardFocus" ToolTip="Determines overall size of the image. Image size is multiplier times map width and height." />
                         <TextBlock Width="100" x:Name="ImageWidthTextBox" Margin="0,2,0,0" TextAlignment="Right" HorizontalAlignment="Right"/>
                         <TextBlock Width="100" x:Name="ImageHeightTextBox" Margin="0,2,0,0" TextAlignment="Right" HorizontalAlignment="Right"/>
-                        <TextBox Width="100" x:Name="WallDecalSizeTextBox" Margin="0,0,0,0" TabIndex="15" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="WallDecalSizeTextBox_TextChanged" GotKeyboardFocus="WallDecalSizeTextBox_GotKeyboardFocus" />
-                        <TextBox Width="100" x:Name="GridCellWidthTextBox" Margin="0,34,0,0" TabIndex="18" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridCellWidthTextBox_TextChanged" GotKeyboardFocus="GridCellWidthTextBox_GotKeyboardFocus" />
-                        <TextBox Width="100" x:Name="GridCellHeightTextBox" TabIndex="19" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridCellHeightTextBox_TextChanged" GotKeyboardFocus="GridCellHeightTextBox_GotKeyboardFocus" />
+                        <TextBox Width="100" x:Name="WallDecalSizeTextBox" Margin="0,0,0,0" TabIndex="14" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="WallDecalSizeTextBox_TextChanged" GotKeyboardFocus="WallDecalSizeTextBox_GotKeyboardFocus" />
+                        <TextBox Width="100" x:Name="GridCellWidthTextBox" Margin="0,34,0,0" TabIndex="17" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridCellWidthTextBox_TextChanged" GotKeyboardFocus="GridCellWidthTextBox_GotKeyboardFocus" />
+                        <TextBox Width="100" x:Name="GridCellHeightTextBox" TabIndex="18" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridCellHeightTextBox_TextChanged" GotKeyboardFocus="GridCellHeightTextBox_GotKeyboardFocus" />
                     </StackPanel>
                 </Grid>
             </GroupBox>
         </StackPanel>
         <StackPanel Grid.Row ="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,10">
-            <Button x:Name="RestoreDefaultsButton" Margin="0,0,5,0" TabIndex="18" Width="100" Height="20" Content="Restore Defaults" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="RestoreDefaultsButton_Click"/>
+            <Button x:Name="RestoreDefaultsButton" Margin="0,0,5,0" TabIndex="19" Width="100" Height="20" Content="Restore Defaults" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="RestoreDefaultsButton_Click"/>
             
         </StackPanel>
         <Border Grid.RowSpan="2" HorizontalAlignment="Right" BorderThickness="0,0,1,0">
