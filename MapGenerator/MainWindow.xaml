@@ -106,38 +106,50 @@
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Orientation="Vertical">
-                            <TextBlock Margin="0,6,0,0">Background Color:</TextBlock>
-                            <TextBlock Margin="0,6,0,0">Wall Color:</TextBlock>
-                            <TextBlock Margin="0,6,0,0">Interior Color:</TextBlock>
                             <TextBlock Margin="0,2,0,0">Wall Line Size:</TextBlock>
                             <TextBlock Margin="0,2,0,0">Size Multiplier:</TextBlock>
                             <TextBlock Margin="0,2,0,0">Image Width:</TextBlock>
                             <TextBlock Margin="0,2,0,0">Image Height:</TextBlock>
                             <TextBlock x:Name="WallDecalSizeTextBlock" Margin="0,2,0,0">Wall Decal Size:</TextBlock>
-                            <TextBlock x:Name="WallDecalColor1TextBlock" Margin="0,6,0,0">Wall Decal Color 1:</TextBlock>
-                            <TextBlock x:Name="WallDecalColor2TextBlock" Margin="0,6,0,0">Wall Decal Color 2:</TextBlock>
-                            <CheckBox x:Name="DrawSmoothCheckBox" Margin="0,2,0,0" TabIndex="18" Content="Smooth Lines" Click="DrawSmoothCheckBox_Click" IsChecked="True"/>
-                            <CheckBox x:Name="DrawGridLinesCheckBox" Margin="0,2,0,0" TabIndex="19" Content="Draw Grid Lines" Click="DrawGridLinesCheckBox_Click" IsChecked="True"/>
+                            <CheckBox x:Name="DrawSmoothCheckBox" Margin="0,2,0,0" TabIndex="15" Content="Smooth Lines" Click="DrawSmoothCheckBox_Click" IsChecked="True"/>
+                            <CheckBox x:Name="DrawGridLinesCheckBox" Margin="0,2,0,0" TabIndex="16" Content="Draw Grid Lines" Click="DrawGridLinesCheckBox_Click" IsChecked="True"/>
                             <TextBlock x:Name="GridCellWidthTextBlock" Margin="0,2,0,0">Grid Cell Width:</TextBlock>
                             <TextBlock x:Name="GridCellHeightTextBlock" Margin="0,2,0,0">Grid Cell Height:</TextBlock>
                             <TextBlock x:Name="GridLineThicknessTextBlock" Margin="0,2,0,0">Grid Line Thickness:</TextBlock>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Vertical">
+                            <TextBox Width="100" x:Name="LineSizeTextBox" TabIndex="12" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="LineSizeTextBox_TextChanged" GotKeyboardFocus="LineSizeTextBox_GotKeyboardFocus" ToolTip="Thickness of the wall lines."/>
+                            <TextBox Width="100" x:Name="SizeMultiplierTextBox" TabIndex="13" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="SizeMultiplierTextBox_TextChanged" GotKeyboardFocus="SizeMultiplierTextBox_GotKeyboardFocus" ToolTip="Determines overall size of the image. Image size is multiplier times map width and height." />
+                            <TextBlock Width="100" x:Name="ImageWidthTextBox" Margin="0,2,0,0" TextAlignment="Right" HorizontalAlignment="Right"/>
+                            <TextBlock Width="100" x:Name="ImageHeightTextBox" Margin="0,2,0,0" TextAlignment="Right" HorizontalAlignment="Right"/>
+                            <TextBox Width="100" x:Name="WallDecalSizeTextBox" Margin="0,0,0,0" TabIndex="14" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="WallDecalSizeTextBox_TextChanged" GotKeyboardFocus="WallDecalSizeTextBox_GotKeyboardFocus" />
+                            <TextBox Width="100" x:Name="GridCellWidthTextBox" Margin="0,34,0,0" TabIndex="17" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridCellWidthTextBox_TextChanged" GotKeyboardFocus="GridCellWidthTextBox_GotKeyboardFocus" />
+                            <TextBox Width="100" x:Name="GridCellHeightTextBox" TabIndex="18" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridCellHeightTextBox_TextChanged" GotKeyboardFocus="GridCellHeightTextBox_GotKeyboardFocus" />
+                            <TextBox Width="100" x:Name="GridLineThicknessTextBox" TabIndex="19" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridLineThicknessTextBox_TextChanged" GotKeyboardFocus="GridLineThicknessTextBox_GotKeyboardFocus" />
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="Colors" Margin="0,0,5,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Margin="0,6,0,0">Background Color:</TextBlock>
+                            <TextBlock Margin="0,6,0,0">Wall Color:</TextBlock>
+                            <TextBlock Margin="0,6,0,0">Interior Color:</TextBlock>
+                            <TextBlock x:Name="WallDecalColor1TextBlock" Margin="0,6,0,0">Wall Decal Color 1:</TextBlock>
+                            <TextBlock x:Name="WallDecalColor2TextBlock" Margin="0,6,0,0">Wall Decal Color 2:</TextBlock>
                             <TextBlock x:Name="GridLineColorTextBlock" Margin="0,6,0,0">Grid Line Color:</TextBlock>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Vertical">
-                            <xctk:ColorPicker Width="100" x:Name="BackgroundColorPicker" TabIndex="12" HorizontalAlignment="Right" SelectedColor="White" SelectedColorChanged="BackgroundColorPicker_SelectedColorChanged"/>
-                            <xctk:ColorPicker Width="100" x:Name="WallColorPicker" TabIndex="13" HorizontalAlignment="Right" SelectedColor="Black" SelectedColorChanged="WallColorPicker_SelectedColorChanged"/>
-                            <xctk:ColorPicker Width="100" x:Name="InteriorColorPicker" TabIndex="14" HorizontalAlignment="Right" SelectedColor="White" SelectedColorChanged="InteriorColorPicker_SelectedColorChanged"/>
-                            <TextBox Width="100" x:Name="LineSizeTextBox" TabIndex="15" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="LineSizeTextBox_TextChanged" GotKeyboardFocus="LineSizeTextBox_GotKeyboardFocus" ToolTip="Thickness of the wall lines."/>
-                            <TextBox Width="100" x:Name="SizeMultiplierTextBox" TabIndex="16" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="SizeMultiplierTextBox_TextChanged" GotKeyboardFocus="SizeMultiplierTextBox_GotKeyboardFocus" ToolTip="Determines overall size of the image. Image size is multiplier times map width and height." />
-                            <TextBlock Width="100" x:Name="ImageWidthTextBox" Margin="0,2,0,0" TextAlignment="Right" HorizontalAlignment="Right"/>
-                            <TextBlock Width="100" x:Name="ImageHeightTextBox" Margin="0,2,0,0" TextAlignment="Right" HorizontalAlignment="Right"/>
-                            <TextBox Width="100" x:Name="WallDecalSizeTextBox" Margin="0,0,0,0" TabIndex="17" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="WallDecalSizeTextBox_TextChanged" GotKeyboardFocus="WallDecalSizeTextBox_GotKeyboardFocus" />
+                            <xctk:ColorPicker Width="100" x:Name="BackgroundColorPicker" TabIndex="20" HorizontalAlignment="Right" SelectedColor="White" SelectedColorChanged="BackgroundColorPicker_SelectedColorChanged"/>
+                            <xctk:ColorPicker Width="100" x:Name="WallColorPicker" TabIndex="21" HorizontalAlignment="Right" SelectedColor="Black" SelectedColorChanged="WallColorPicker_SelectedColorChanged"/>
+                            <xctk:ColorPicker Width="100" x:Name="InteriorColorPicker" TabIndex="22" HorizontalAlignment="Right" SelectedColor="White" SelectedColorChanged="InteriorColorPicker_SelectedColorChanged"/>
                             <xctk:ColorPicker Width="100" x:Name="WallDecalColor1Picker" TabIndex="23" HorizontalAlignment="Right" SelectedColor="DarkGray" SelectedColorChanged="WallDecalColor1Picker_SelectedColorChanged"/>
-                            <xctk:ColorPicker Width="100" x:Name="WallDecalColor2Picker" TabIndex="23" HorizontalAlignment="Right" SelectedColor="LightGray" SelectedColorChanged="WallDecalColor2Picker_SelectedColorChanged"/>
-                            <TextBox Width="100" x:Name="GridCellWidthTextBox" Margin="0,34,0,0" TabIndex="20" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridCellWidthTextBox_TextChanged" GotKeyboardFocus="GridCellWidthTextBox_GotKeyboardFocus" />
-                            <TextBox Width="100" x:Name="GridCellHeightTextBox" TabIndex="21" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridCellHeightTextBox_TextChanged" GotKeyboardFocus="GridCellHeightTextBox_GotKeyboardFocus" />
-                            <TextBox Width="100" x:Name="GridLineThicknessTextBox" TabIndex="22" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridLineThicknessTextBox_TextChanged" GotKeyboardFocus="GridLineThicknessTextBox_GotKeyboardFocus" />
-                            <xctk:ColorPicker Width="100" x:Name="GridLineColorPicker" TabIndex="23" HorizontalAlignment="Right" SelectedColor="Black" SelectedColorChanged="GridLineColorPicker_SelectedColorChanged"/>
+                            <xctk:ColorPicker Width="100" x:Name="WallDecalColor2Picker" TabIndex="24" HorizontalAlignment="Right" SelectedColor="LightGray" SelectedColorChanged="WallDecalColor2Picker_SelectedColorChanged"/>
+                            <xctk:ColorPicker Width="100" x:Name="GridLineColorPicker" TabIndex="25" HorizontalAlignment="Right" SelectedColor="Black" SelectedColorChanged="GridLineColorPicker_SelectedColorChanged"/>
                         </StackPanel>
                     </Grid>
                 </GroupBox>
