@@ -18,10 +18,27 @@
             <ColumnDefinition x:Name="PropertyWindowColumn" Width="200"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="20"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
-        <ScrollViewer Grid.RowSpan="2">
+        <Menu Grid.ColumnSpan="4">
+            <MenuItem Header="_File">
+                <MenuItem x:Name="OpenMenuItem" Header="_Open Map" Click="OpenMenuItem_Click">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/OpenFolder_16x.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Name="SaveMenuItem" Header="_Save Map" Click="SaveMenuItem_Click">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/SaveStatusBar1_16x.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator></Separator>
+                <MenuItem x:Name="ExitMenuItem" Header="E_xit" Click="ExitMenuItem_Click"/>
+            </MenuItem>
+        </Menu>
+        <ScrollViewer Grid.Row="1" Grid.RowSpan="2">
             <StackPanel Orientation="Vertical" Grid.RowSpan="2">
                 <GroupBox Header="Randomizer" Margin="0,0,5,0">
                     <Grid>
@@ -158,12 +175,12 @@
         <StackPanel Grid.Row ="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,10" IsEnabled="False">
             <Button x:Name="RestoreDefaultsButton" Margin="0,0,5,0" TabIndex="24" Width="100" Height="20" Content="Restore Defaults" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="RestoreDefaultsButton_Click" Visibility="Collapsed"/>
         </StackPanel>
-        <Border Grid.RowSpan="2" HorizontalAlignment="Right" BorderThickness="0,0,1,0">
+        <Border Grid.Row="1" Grid.RowSpan="2" HorizontalAlignment="Right" BorderThickness="0,0,1,0">
             <Border.BorderBrush>
                 <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ActiveBorderColorKey}}"/>
             </Border.BorderBrush>
         </Border>
-        <ScrollViewer x:Name="MapScrollViewer" Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Focusable="False">
+        <ScrollViewer x:Name="MapScrollViewer" Grid.Column="1" Grid.Row="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Focusable="False">
             <Canvas x:Name="MapCanvas" Width="Auto" Height="Auto" SizeChanged="MapCanvas_SizeChanged" MouseMove="MapCanvas_MouseMove" MouseDown="MapCanvas_MouseDown" MouseLeftButtonUp="MapCanvas_MouseLeftButtonUp" KeyDown="MapCanvas_KeyDown" Focusable="True"
                     ContextMenuService.IsEnabled="{Binding Path=SelectedMapType, Converter={StaticResource AddNodeEnabledConverter}}">
                 <Canvas.Background>
@@ -192,21 +209,21 @@
                 <local:MapNodeControl x:Name="testControl" Width="20" Height="20"/>
             </Canvas>-->
         </ScrollViewer>
-        <CheckBox x:Name="ZoomToFitCheckBox" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" Margin="5,5,5,0" TabIndex="19" HorizontalAlignment="Right" VerticalAlignment="Top" IsChecked="True" Click="ZoomToFitCheckBox_Click">Zoom to Fit</CheckBox>
-        <Button x:Name="SaveButton" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" Width="100" Height="20" TabIndex="20" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5,5" Click="SaveButton_Click">
+        <CheckBox x:Name="ZoomToFitCheckBox" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2" Margin="5,5,5,0" TabIndex="19" HorizontalAlignment="Right" VerticalAlignment="Top" IsChecked="True" Click="ZoomToFitCheckBox_Click">Zoom to Fit</CheckBox>
+        <Button x:Name="SaveButton" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2" Width="100" Height="20" TabIndex="20" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5,5" Click="SaveButton_Click">
             <StackPanel Orientation="Horizontal">
                 <Image Source="Resources/SaveStatusBar1_16x.png" Margin="0,0,5,0"></Image>
                 <TextBlock>Save Image</TextBlock>
             </StackPanel>
         </Button>
         <!--<Line Grid.Column="2" Stroke="Gray" Stretch="Fill" HorizontalAlignment="Left" Y2="1" StrokeThickness="1"></Line>-->
-        <Border Grid.Column="2" HorizontalAlignment="Left" BorderThickness="0,0,1,0">
+        <Border Grid.Column="2" Grid.Row="1" HorizontalAlignment="Left" BorderThickness="0,0,1,0">
             <Border.BorderBrush>
                 <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ActiveBorderColorKey}}"/>
             </Border.BorderBrush>
         </Border>
-        <TextBlock Grid.Column="2" Margin="10,10,10,0" Width="170" TextWrapping="Wrap">Right click in the grid to add nodes, right click on nodes to add connections to nodes.</TextBlock>
-        <wpg:WpfPropertyGrid x:Name="PropertyGrid1" Grid.Column="2" Height="300"
+        <TextBlock Grid.Column="2" Grid.Row="1" Margin="10,10,10,0" Width="170" TextWrapping="Wrap">Right click in the grid to add nodes, right click on nodes to add connections to nodes.</TextBlock>
+        <wpg:WpfPropertyGrid x:Name="PropertyGrid1" Grid.Column="2" Grid.Row="1" Height="300"
         Margin="0,0,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" 
         HelpVisible="True" 
         ToolbarVisible="False"

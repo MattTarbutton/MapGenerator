@@ -120,7 +120,6 @@ namespace MapGenerator
             GridCellWidthTextBox.Text = Properties.Settings.Default.gridCellWidth.ToString();
             GridCellHeightTextBox.Text = Properties.Settings.Default.gridCellHeight.ToString();
             GridLineThicknessTextBox.Text = Properties.Settings.Default.gridLineThickness.ToString();
-            string rngSeedString = Properties.Settings.Default.rngSeed.ToString();
             int rngSeed = 0;
             foreach (char c in SeedTextBox.Text)
             {
@@ -770,9 +769,86 @@ namespace MapGenerator
             WallDecalSizeTextBox.SelectAll();
         }
 
+        private void BackgroundColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
+        {
+            if (e.NewValue != null && displayLevel != null)
+            {
+                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
+                displayLevel.BackgroundColor = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
+                RegenerateLevel();
+            }
+        }
+
+        private void WallColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
+        {
+            if (e.NewValue != null && displayLevel != null)
+            {
+                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
+                displayLevel.WallColor = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
+                RegenerateLevel();
+            }
+        }
+
+        private void InteriorColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
+        {
+            if (e.NewValue != null && displayLevel != null)
+            {
+                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
+                displayLevel.InteriorColor = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
+                RegenerateLevel();
+            }
+        }
+
+        private void GridLineColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
+        {
+            if (e.NewValue != null && displayLevel != null)
+            {
+                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
+                displayLevel.GridLineColor = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
+                RegenerateLevel();
+            }
+        }
+
+        private void WallDecalColor1Picker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
+        {
+            if (e.NewValue != null && displayLevel != null)
+            {
+                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
+                displayLevel.WallDecalColor1 = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
+                RegenerateLevel();
+            }
+        }
+
+        private void WallDecalColor2Picker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
+        {
+            if (e.NewValue != null && displayLevel != null)
+            {
+                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
+                displayLevel.WallDecalColor2 = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
+                RegenerateLevel();
+            }
+        }
+
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             //TODO: add saving settings
+            MessageBoxResult result = MessageBox.Show("Save before closing?", "", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Cancel)
+            {
+                e.Cancel = true;
+            }
+            else if (result == MessageBoxResult.Yes)
+            {
+                SaveFileDialog dlg = new SaveFileDialog()
+                {
+                    DefaultExt = ".csv",
+                    Filter = "Comma Separated Variable (.csv)|*.csv"
+                };
+                if (dlg.ShowDialog() == true)
+                {
+                    SaveToCSV(dlg.FileName);
+                }
+            }
         }
 
         private void RandomizeButton_Click(object sender, RoutedEventArgs e)
@@ -988,6 +1064,14 @@ namespace MapGenerator
             _selectedControls.Remove(controlToRemove);
             RegenerateLevel();
         }
+
+        public void RemoveAllControls()
+        {
+            while (mapNodes.Count > 0)
+            {
+                RemoveControl(mapNodes.Last());
+            }
+        }
         
         private void MapCanvas_MouseMove(object sender, MouseEventArgs e)
         {
@@ -1193,15 +1277,52 @@ namespace MapGenerator
         private void CopyCmdBinding_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             string csv = "";
+            int pasteID = 0;
+            Dictionary<UserControl, int> controlsCopied = new Dictionary<UserControl, int>();
+
             foreach (UserControl control in _selectedControls)
             {
-                if (control.GetType() == typeof(MapNodeControl))
+                // If we are copying connections too, a map node control could already be in the list
+                if (!controlsCopied.ContainsKey(control))
                 {
-                    MapNode node = ((MapNodeControl)control).MapNode;
-                    csv += "MapNodeControl," + Canvas.GetLeft(control) + "," + Canvas.GetTop(control) + "," + node.GetCSV() + ",";
+                    // Add the nodes for connections first
+                    if (control.GetType() == typeof(ConnectionControl))
+                    {
+                        int[] id = new int[] { -1, -1 };
+                        MapNodeControl[] nodeControls = ((ConnectionControl)control).MapNodes;
+                        for (int i = 0; i < nodeControls.Length; i++)
+                        {
+                            if (!controlsCopied.ContainsKey(nodeControls[i]))
+                            {
+                                controlsCopied.Add(nodeControls[i], pasteID);
+                                MapNode node = (nodeControls[i]).MapNode;
+                                csv += "MapNodeControl," + pasteID + "," + Canvas.GetLeft(nodeControls[i]) + "," + Canvas.GetTop(nodeControls[i]) + "," + node.GetCSV() + ",";
+                                id[i] = pasteID;
+                                pasteID++;
+                            }
+                            else
+                            {
+                                id[i] = controlsCopied[nodeControls[i]];
+                            }
+                        }
+                        
+                        Connection con = ((ConnectionControl)control).Connection;
+                        csv += "ConnectionControl," + id[0] + "," + id[1] + "," + con.GetCSV();
+                    }
+                    // If we are copying connections too, a map node control could already be in the list
+                    if (!controlsCopied.ContainsKey(control))
+                    {
+                        if (control.GetType() == typeof(MapNodeControl))
+                        {
+                            controlsCopied.Add(control, pasteID);
+                            MapNode node = ((MapNodeControl)control).MapNode;
+                            csv += "MapNodeControl," + pasteID + "," + Canvas.GetLeft(control) + "," + Canvas.GetTop(control) + "," + node.GetCSV() + ",";
+                            pasteID++;
+                        }
+                    }
                 }
             }
-
+            
             Clipboard.SetText(csv, TextDataFormat.CommaSeparatedValue);
         }
         
@@ -1213,6 +1334,7 @@ namespace MapGenerator
         private void PasteNodeFromClipboard()
         {
             string csv = Clipboard.GetText(TextDataFormat.CommaSeparatedValue);
+            Dictionary<int, MapNodeControl> mapNodeControlsPasted = new Dictionary<int, MapNodeControl>();
             
             if (csv != null)
             {
@@ -1226,6 +1348,8 @@ namespace MapGenerator
                     if (values[i] == "MapNodeControl")
                     {
                         i++;
+                        int.TryParse(values[i], out int newPasteID);
+                        i++;
                         double.TryParse(values[i], out double left);
                         left += 20;
                         i++;
@@ -1238,69 +1362,233 @@ namespace MapGenerator
                         AddNodeToCanvas(newControl, new System.Windows.Point(left, top));
                         SelectControl(newControl, true);
                         PropertyGrid1.SelectedObject = newNode;
+                        mapNodeControlsPasted.Add(newPasteID, newControl);
+                    }
+                    else if (values[i] == "ConnectionControl")
+                    {
+                        i++;
+                        int.TryParse(values[i], out int pasteID1);
+                        i++;
+                        int.TryParse(values[i], out int pasteID2);
+                        i++;
+
+                        Connection newCon = new Connection(mapNodeControlsPasted[pasteID1].MapNode, mapNodeControlsPasted[pasteID2].MapNode, values, ref i);
+                        ConnectionControl newConnection = new ConnectionControl(mapNodeControlsPasted[pasteID1], mapNodeControlsPasted[pasteID2], newCon, GetMapCanvasRatio(), this);
+                        mapNodeControlsPasted[pasteID1].AddConnectionControl(newConnection);
+                        mapNodeControlsPasted[pasteID2].AddConnectionControl(newConnection);
+
+                        MapCanvas.Children.Add(newConnection);
+                        newCon.PropertyChanged += OnPropertyChanged;
+                        connections.Add(newConnection);
+                        Canvas.SetZIndex(newConnection, -1);
                     }
                 }
             }
         }
 
-        private void BackgroundColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
+        private void SaveToCSV(string filepath)
         {
-            if (e.NewValue != null && displayLevel != null)
+            StringBuilder csv = new StringBuilder();
+            int pasteID = 0;
+            Dictionary<UserControl, int> controlsCopied = new Dictionary<UserControl, int>();
+
+            //Save all parameters on main window
+            csv.Append(string.Format("{0},{1},{2},{3},", SeedTextBox.Text, MapTypeComboBox.SelectedValue.ToString(), MazeRowsTextBox.Text, MazeColumnsTextBox.Text));
+            csv.Append(string.Format("{0},{1},{2},{3},", BirthLimitTextBox.Text, DeathLimitTextBox.Text, ChanceToStartAliveTextBox.Text, SimStepsTextBox.Text));
+            csv.Append(string.Format("{0},{1},{2},{3},", PathWidthTextBox.Text, MapWidthTextBox.Text, MapHeightTextBox.Text, LineSizeTextBox.Text));
+            csv.Append(string.Format("{0},{1},", SizeMultiplierTextBox.Text, DrawSmoothCheckBox.IsChecked));
+            csv.Append(string.Format("{0},{1},{2},{3},", DrawGridLinesCheckBox.IsChecked, WallDecalSizeTextBox.Text, GridCellWidthTextBox.Text, GridCellHeightTextBox.Text));
+            csv.Append(string.Format("{0},{1},{2},{3},", GridLineThicknessTextBox.Text, BackgroundColorPicker.SelectedColor, WallColorPicker.SelectedColor, InteriorColorPicker.SelectedColor));
+            csv.Append(string.Format("{0},{1},{2},", GridLineColorPicker.SelectedColor, WallDecalColor1Picker.SelectedColor, WallDecalColor2Picker.SelectedColor));
+
+            List<UserControl> controls = new List<UserControl>();
+            foreach (ConnectionControl conControl in connections)
             {
-                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
-                displayLevel.BackgroundColor = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
-                RegenerateLevel();
+                controls.Add(conControl);
+            }
+            foreach (MapNodeControl nodeControl in mapNodes)
+            {
+                controls.Add(nodeControl);
+            }
+
+            //Save all parameters on each control
+            foreach (UserControl control in controls)
+            {
+                // If we are copying connections too, a map node control could already be in the list
+                if (!controlsCopied.ContainsKey(control))
+                {
+                    // Add the nodes for connections first
+                    if (control.GetType() == typeof(ConnectionControl))
+                    {
+                        int[] id = new int[] { -1, -1 };
+                        MapNodeControl[] nodeControls = ((ConnectionControl)control).MapNodes;
+                        for (int i = 0; i < nodeControls.Length; i++)
+                        {
+                            if (!controlsCopied.ContainsKey(nodeControls[i]))
+                            {
+                                controlsCopied.Add(nodeControls[i], pasteID);
+                                MapNode node = (nodeControls[i]).MapNode;
+                                csv.Append("MapNodeControl," + pasteID + "," + Canvas.GetLeft(nodeControls[i]) + "," + Canvas.GetTop(nodeControls[i]) + "," + node.GetCSV() + ",");
+                                id[i] = pasteID;
+                                pasteID++;
+                            }
+                            else
+                            {
+                                id[i] = controlsCopied[nodeControls[i]];
+                            }
+                        }
+
+                        Connection con = ((ConnectionControl)control).Connection;
+                        csv.Append("ConnectionControl," + id[0] + "," + id[1] + "," + con.GetCSV());
+                    }
+                    // If we are copying connections too, a map node control could already be in the list
+                    if (!controlsCopied.ContainsKey(control))
+                    {
+                        if (control.GetType() == typeof(MapNodeControl))
+                        {
+                            controlsCopied.Add(control, pasteID);
+                            MapNode node = ((MapNodeControl)control).MapNode;
+                            csv.Append("MapNodeControl," + pasteID + "," + Canvas.GetLeft(control) + "," + Canvas.GetTop(control) + "," + node.GetCSV() + ",");
+                            pasteID++;
+                        }
+                    }
+                }
+            }
+            
+            //after your loop
+            File.WriteAllText(filepath, csv.ToString());
+        }
+
+        private void OpenFromCSV(string filepath)
+        {
+            // Prevent regenerating while working
+            regeneratingLevel = true;
+
+            using (StreamReader reader = new StreamReader(filepath))
+            {
+                StringBuilder csv = new StringBuilder();
+                while (!reader.EndOfStream)
+                {
+                    csv.Append(reader.ReadLine());
+                }
+
+                Dictionary<int, MapNodeControl> mapNodeControlsPasted = new Dictionary<int, MapNodeControl>();
+
+                if (csv.Length > 0)
+                {
+                    // Deselect all controls so the new selection can be the pasted controls
+                    SelectControl(null, false);
+                    // Clear the canvas of existing nodes
+                    RemoveAllControls();
+
+                    string[] values = csv.ToString().Split(',');
+
+                    SeedTextBox.Text = values[0];
+                    MapTypeComboBox.SelectedValue = values[1];
+                    MazeRowsTextBox.Text = values[2];
+                    MazeColumnsTextBox.Text = values[3];
+                    BirthLimitTextBox.Text = values[4];
+                    DeathLimitTextBox.Text = values[5];
+                    ChanceToStartAliveTextBox.Text = values[6];
+                    SimStepsTextBox.Text = values[7];
+                    PathWidthTextBox.Text = values[8];
+                    MapWidthTextBox.Text = values[9];
+                    MapHeightTextBox.Text = values[10];
+                    LineSizeTextBox.Text = values[11];
+                    SizeMultiplierTextBox.Text = values[12];
+                    bool.TryParse(values[13], out bool drawSmoothIsChecked);
+                    DrawSmoothCheckBox.IsChecked = drawSmoothIsChecked;
+                    displayLevel.DrawSmooth = drawSmoothIsChecked;
+                    bool.TryParse(values[14], out bool drawGridLinesIsChecked);
+                    DrawGridLinesCheckBox.IsChecked = drawGridLinesIsChecked;
+                    displayLevel.DrawGridLines = drawGridLinesIsChecked;
+                    WallDecalSizeTextBox.Text = values[15];
+                    GridCellWidthTextBox.Text = values[16];
+                    GridCellHeightTextBox.Text = values[17];
+                    GridLineThicknessTextBox.Text = values[18];
+                    BackgroundColorPicker.SelectedColor = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(values[19]);
+                    WallColorPicker.SelectedColor = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(values[20]);
+                    InteriorColorPicker.SelectedColor = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(values[21]);
+                    GridLineColorPicker.SelectedColor = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(values[22]);
+                    WallDecalColor1Picker.SelectedColor = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(values[23]);
+                    WallDecalColor2Picker.SelectedColor = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(values[24]);
+
+                    for (int i = 0; i < values.Length; i++)
+                    {
+                        if (values[i] == "MapNodeControl")
+                        {
+                            i++;
+                            int.TryParse(values[i], out int newPasteID);
+                            i++;
+                            double.TryParse(values[i], out double left);
+                            left += 20;
+                            i++;
+                            double.TryParse(values[i], out double top);
+                            top += 20;
+                            i++;
+
+                            MapNode newNode = new MapNode(GetMapCanvasRatio(), values, ref i);
+                            MapNodeControl newControl = new MapNodeControl(newNode, GetMapCanvasRatio(), this);
+                            AddNodeToCanvas(newControl, new System.Windows.Point(left, top));
+                            SelectControl(newControl, true);
+                            PropertyGrid1.SelectedObject = newNode;
+                            mapNodeControlsPasted.Add(newPasteID, newControl);
+                        }
+                        else if (values[i] == "ConnectionControl")
+                        {
+                            i++;
+                            int.TryParse(values[i], out int pasteID1);
+                            i++;
+                            int.TryParse(values[i], out int pasteID2);
+                            i++;
+
+                            Connection newCon = new Connection(mapNodeControlsPasted[pasteID1].MapNode, mapNodeControlsPasted[pasteID2].MapNode, values, ref i);
+                            ConnectionControl newConnection = new ConnectionControl(mapNodeControlsPasted[pasteID1], mapNodeControlsPasted[pasteID2], newCon, GetMapCanvasRatio(), this);
+                            mapNodeControlsPasted[pasteID1].AddConnectionControl(newConnection);
+                            mapNodeControlsPasted[pasteID2].AddConnectionControl(newConnection);
+
+                            MapCanvas.Children.Add(newConnection);
+                            newCon.PropertyChanged += OnPropertyChanged;
+                            connections.Add(newConnection);
+                            Canvas.SetZIndex(newConnection, -1);
+                        }
+                    }
+                }
+            }
+
+            regeneratingLevel = false;
+            RegenerateLevel();
+        }
+        
+        private void OpenMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dlg = new OpenFileDialog()
+            {
+                DefaultExt = ".csv",
+                Filter = "Comma Separated Variable (.csv)|*.csv"
+            };
+            if (dlg.ShowDialog() == true && dlg.CheckFileExists)
+            {
+                OpenFromCSV(dlg.FileName);
             }
         }
 
-        private void WallColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
+        private void SaveMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            if (e.NewValue != null && displayLevel != null)
+            SaveFileDialog dlg = new SaveFileDialog()
             {
-                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
-                displayLevel.WallColor = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
-                RegenerateLevel();
+                DefaultExt = ".csv",
+                Filter = "Comma Separated Variable (.csv)|*.csv"
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                SaveToCSV(dlg.FileName);
             }
         }
 
-        private void InteriorColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
+        private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            if (e.NewValue != null && displayLevel != null)
-            {
-                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
-                displayLevel.InteriorColor = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
-                RegenerateLevel();
-            }
-        }
-
-        private void GridLineColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
-        {
-            if (e.NewValue != null && displayLevel != null)
-            {
-                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
-                displayLevel.GridLineColor = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
-                RegenerateLevel();
-            }
-        }
-
-        private void WallDecalColor1Picker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
-        {
-            if (e.NewValue != null && displayLevel != null)
-            {
-                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
-                displayLevel.WallDecalColor1 = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
-                RegenerateLevel();
-            }
-        }
-
-        private void WallDecalColor2Picker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<System.Windows.Media.Color?> e)
-        {
-            if (e.NewValue != null && displayLevel != null)
-            {
-                System.Windows.Media.Color newColor = (System.Windows.Media.Color)e.NewValue;
-                displayLevel.WallDecalColor2 = System.Drawing.Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B);
-                RegenerateLevel();
-            }
+            this.Close();
         }
     }
 }

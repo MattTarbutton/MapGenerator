@@ -110,6 +110,28 @@ namespace MapGenerator
             _pathType = ConnectionType.RandomWalk;
         }
 
+        public Connection(MapNode node1, MapNode node2, string[] csvValues, ref int startIndex)
+        {
+            _nodes = new MapNode[2] { node1, node2 };
+
+            node1.PositionChanged += OnPositionChanged;
+            node2.PositionChanged += OnPositionChanged;
+
+            int.TryParse(csvValues[startIndex], out _pathWidth);
+            startIndex++;
+            int.TryParse(csvValues[startIndex], out _perturbAmount);
+            startIndex++;
+            Enum.TryParse(csvValues[startIndex], out _pathType);
+        }
+
+        public string GetCSV()
+        {
+            string csv = "";
+            csv += PathWidth + "," + PerturbAmount + "," + PathType.ToString();
+
+            return csv;
+        }
+
         public void ChangeNode(MapNode oldNode, MapNode newNode)
         {
             if (_nodes[0] == oldNode)

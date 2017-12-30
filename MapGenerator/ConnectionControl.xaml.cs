@@ -56,6 +56,10 @@ namespace MapGenerator
         }
 
         private MapNodeControl[] _nodes;
+        public MapNodeControl[] MapNodes
+        {
+            get { return _nodes; }
+        }
 
         public Visibility ShowSelectionRectangle
         {
