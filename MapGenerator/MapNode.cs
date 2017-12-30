@@ -129,6 +129,40 @@ namespace MapGenerator
             }
         }
 
+        private RotationType _roomRotationType;
+        [Category("Room")]
+        [DisplayName("Room Rotation Type")]
+        [Description("Specifiy random rotation or custom rotation.")]
+        public RotationType RoomRotationType
+        {
+            get { return _roomRotationType; }
+            set
+            {
+                if (value == _roomRotationType)
+                    return;
+
+                _roomRotationType = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private int _roomRotation;
+        [Category("Room")]
+        [DisplayName("Room Rotation")]
+        [Description("Rotation of the room in degrees.")]
+        public int RoomRotation
+        {
+            get { return _roomRotation; }
+            set
+            {
+                if (value == _roomRotation)
+                    return;
+
+                _roomRotation = value;
+                OnPropertyChanged();
+            }
+        }
+
         private int _pathWidth;
         [Category("Room")]
         [DisplayName("PathWidth")]
@@ -194,6 +228,12 @@ namespace MapGenerator
             XRoom
         }
 
+        public enum RotationType
+        {
+            Random,
+            Custom
+        }
+
         public MapNode(int x, int y, double positionRatio)
         {
             Connections = new List<Connection>();
@@ -205,6 +245,39 @@ namespace MapGenerator
             _pathWidth = 10;
             _roomSize = 15;
             _room = RoomType.RandomRoom;
+        }
+
+        public MapNode(double positionRatio, string[] csvValues, ref int startIndex)
+        {
+            Connections = new List<Connection>();
+
+            int.TryParse(csvValues[startIndex], out int x);
+            startIndex++;
+            x += 20;
+            int.TryParse(csvValues[startIndex], out int y);
+            startIndex++;
+            y += 20;
+            _position = new Point(x, y);
+            _truePosition = new Point((int)(x / positionRatio), (int)(y / positionRatio));
+            Enum.TryParse(csvValues[startIndex], out _room);
+            startIndex++;
+            int.TryParse(csvValues[startIndex], out _roomSize);
+            startIndex++;
+            Enum.TryParse(csvValues[startIndex], out _roomRotationType);
+            startIndex++;
+            int.TryParse(csvValues[startIndex], out _roomRotation);
+            startIndex++;
+            int.TryParse(csvValues[startIndex], out _pathWidth);
+            startIndex++;
+            int.TryParse(csvValues[startIndex], out _maxPerturb);
+        }
+
+        public string GetCSV()
+        {
+            string csv = "";
+            csv += Position.X + "," + Position.Y + "," + Room.ToString() + "," + RoomSize + "," + RoomRotationType.ToString() + "," + RoomRotation + "," + PathWidth + "," + MaxPerturb;
+
+            return csv;
         }
 
         private void OnPropertyChanged([CallerMemberName] String propertyName = "")

@@ -193,7 +193,7 @@ namespace MapGenerator.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("20")]
+        [global::System.Configuration.DefaultSettingValueAttribute("5")]
         public int gridCellHeight {
             get {
                 return ((int)(this["gridCellHeight"]));
@@ -205,7 +205,7 @@ namespace MapGenerator.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("20")]
+        [global::System.Configuration.DefaultSettingValueAttribute("5")]
         public int gridCellWidth {
             get {
                 return ((int)(this["gridCellWidth"]));
@@ -236,6 +236,18 @@ namespace MapGenerator.Properties {
             }
             set {
                 this["wallDecalSize"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public int gridLineThickness {
+            get {
+                return ((int)(this["gridLineThickness"]));
+            }
+            set {
+                this["gridLineThickness"] = value;
             }
         }
     }

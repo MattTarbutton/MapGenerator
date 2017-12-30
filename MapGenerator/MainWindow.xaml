@@ -113,6 +113,7 @@
                         <CheckBox x:Name="DrawGridLinesCheckBox" Margin="0,2,0,0" TabIndex="16" Content="Draw Grid Lines" Click="DrawGridLinesCheckBox_Click" IsChecked="True"/>
                         <TextBlock x:Name="GridCellWidthTextBlock" Margin="0,2,0,0">Grid Cell Width:</TextBlock>
                         <TextBlock x:Name="GridCellHeightTextBlock" Margin="0,2,0,0">Grid Cell Height:</TextBlock>
+                        <TextBlock x:Name="GridLineThicknessTextBlock" Margin="0,2,0,0">Grid Line Thickness:</TextBlock>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Vertical">
                         <TextBox Width="100" x:Name="LineSizeTextBox" TabIndex="12" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="LineSizeTextBox_TextChanged" GotKeyboardFocus="LineSizeTextBox_GotKeyboardFocus" ToolTip="Thickness of the wall lines."/>
@@ -122,13 +123,13 @@
                         <TextBox Width="100" x:Name="WallDecalSizeTextBox" Margin="0,0,0,0" TabIndex="14" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="WallDecalSizeTextBox_TextChanged" GotKeyboardFocus="WallDecalSizeTextBox_GotKeyboardFocus" />
                         <TextBox Width="100" x:Name="GridCellWidthTextBox" Margin="0,34,0,0" TabIndex="17" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridCellWidthTextBox_TextChanged" GotKeyboardFocus="GridCellWidthTextBox_GotKeyboardFocus" />
                         <TextBox Width="100" x:Name="GridCellHeightTextBox" TabIndex="18" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridCellHeightTextBox_TextChanged" GotKeyboardFocus="GridCellHeightTextBox_GotKeyboardFocus" />
+                        <TextBox Width="100" x:Name="GridLineThicknessTextBox" TabIndex="19" TextAlignment="Right" HorizontalAlignment="Right" TextChanged="GridLineThicknessTextBox_TextChanged" GotKeyboardFocus="GridLineThicknessTextBox_GotKeyboardFocus" />
                     </StackPanel>
                 </Grid>
             </GroupBox>
         </StackPanel>
-        <StackPanel Grid.Row ="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,10">
-            <Button x:Name="RestoreDefaultsButton" Margin="0,0,5,0" TabIndex="19" Width="100" Height="20" Content="Restore Defaults" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="RestoreDefaultsButton_Click"/>
-            
+        <StackPanel Grid.Row ="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,10" IsEnabled="False">
+            <Button x:Name="RestoreDefaultsButton" Margin="0,0,5,0" TabIndex="20" Width="100" Height="20" Content="Restore Defaults" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="RestoreDefaultsButton_Click" Visibility="Collapsed"/>
         </StackPanel>
         <Border Grid.RowSpan="2" HorizontalAlignment="Right" BorderThickness="0,0,1,0">
             <Border.BorderBrush>

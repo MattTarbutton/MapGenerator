@@ -119,6 +119,12 @@ namespace MapGenerator
             get { return _gridLineHeight; }
             set { _gridLineHeight = value; }
         }
+        private int _gridLineThickness;
+        public int GridLineThickness
+        {
+            get { return _gridLineThickness; }
+            set { _gridLineThickness = value; }
+        }
         private int _rngSeed;
         public int RngSeed
         {
@@ -1133,7 +1139,7 @@ namespace MapGenerator
             // Draw grid lines
             if (DrawGridLines && MapWidth > GridLineWidth && MapHeight > GridLineHeight)
             {
-                Pen gridPen = new Pen(Color.Black, linePen.Width / 2);
+                Pen gridPen = new Pen(Color.Black, GridLineThickness);
                 int[,] aliveGridCells = new int[Convert.ToInt32(1.0f * MapWidth / GridLineWidth), Convert.ToInt32(1.0f * MapHeight / GridLineHeight)];
                 for (int i = 0; i < map.GetLength(0); i++)
                 {
@@ -2854,7 +2860,7 @@ namespace MapGenerator
                 //    }
                 //}
 
-                AddRoomFromNode(ref map, nodes[i], nodes[i].RoomSize);
+                AddRoomFromNode(ref map, nodes[i]);
             }
 
             foreach (Connection c in connections)
@@ -3250,7 +3256,7 @@ namespace MapGenerator
             }
         }
 
-        private void AddRoomFromNode(ref int[,] map, MapNode node, int size)
+        private void AddRoomFromNode(ref int[,] map, MapNode node)
         {
             switch (node.Room)
             {
@@ -3259,58 +3265,58 @@ namespace MapGenerator
                         int rngRoll = _rng.Next(0, 100);
                         if (rngRoll < 17)
                         {
-                            AddCRoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                            AddCRoom(ref map, node);
                         }
                         else if (rngRoll < 34)
                         {
-                            AddIRoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                            AddIRoom(ref map, node);
                         }
                         else if (rngRoll < 51)
                         {
-                            AddLRoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                            AddLRoom(ref map, node);
                         }
                         else if (rngRoll < 68)
                         {
-                            AddORoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                            AddORoom(ref map, node);
                         }
                         else if (rngRoll < 85)
                         {
-                            AddSolidORoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                            AddSolidORoom(ref map, node);
                         }
                         else
                         {
-                            AddXRoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                            AddXRoom(ref map, node);
                         }
                         break;
                     }
                 case MapNode.RoomType.CRoom:
                     {
-                        AddCRoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        AddCRoom(ref map, node);
                         break;
                     }
                 case MapNode.RoomType.IRoom:
                     {
-                        AddIRoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        AddIRoom(ref map, node);
                         break;
                     }
                 case MapNode.RoomType.LRoom:
                     {
-                        AddLRoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        AddLRoom(ref map, node);
                         break;
                     }
                 case MapNode.RoomType.ORoom:
                     {
-                        AddORoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        AddORoom(ref map, node);
                         break;
                     }
                 case MapNode.RoomType.SolidORoom:
                     {
-                        AddSolidORoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        AddSolidORoom(ref map, node);
                         break;
                     }
                 case MapNode.RoomType.XRoom:
                     {
-                        AddXRoom(ref map, new Vector2i(node.PerturbedPosition), size, node.PathWidth);
+                        AddXRoom(ref map, node);
                         break;
                     }
                 default:
@@ -3358,24 +3364,55 @@ namespace MapGenerator
         }
 
         // Add a C room where the opening is randomly placed
-        private void AddCRoom(ref int[,] map, Vector2i nodePosition, int size, int pathWidth)
+        private void AddCRoom(ref int[,] map, MapNode node)
         {
-            float openSideAngle = (float)(_rng.NextDouble() * 1.5 * Math.PI - Math.PI * .75);
-            float openSideAngleHigh = openSideAngle + (float)Math.PI / 4.0f;
-            float openSideAngleLow = openSideAngle - (float)Math.PI / 4.0f;
+            int size = node.RoomSize;
+            int pathWidth = node.PathWidth;
+            Point nodePosition = node.PerturbedPosition;
+
+            float openSideAngle;
+            float openSideAngleHigh;
+            float openSideAngleLow;
+            if (node.RoomRotationType == MapNode.RotationType.Random)
+            {
+                openSideAngle = (float)(_rng.NextDouble() * 1.5 * Math.PI - Math.PI * .75);
+                openSideAngleHigh = openSideAngle + (float)Math.PI / 4.0f;
+                openSideAngleLow = openSideAngle - (float)Math.PI / 4.0f;
+            }
+            else
+            {
+                openSideAngle = (float)(((node.RoomRotation % 360) * Math.PI / 180.0) - Math.PI);
+                openSideAngleHigh = openSideAngle + (float)Math.PI / 4.0f;
+                openSideAngleLow = openSideAngle - (float)Math.PI / 4.0f;
+            }
+            
             for (int i = -size; i < size; i++)
             {
                 for (int j = -size; j < size; j++)
                 {
                     float mag = (float)Math.Sqrt(i * i + j * j);
                     float angle = (float)Math.Atan2(j, i);
-                    if (nodePosition.x + i < 0 || nodePosition.x + i > map.GetLength(0) - 1 || nodePosition.y + j < 0 || nodePosition.y + j > map.GetLength(1) - 1 || mag > size || mag < size - 1 || (angle < openSideAngleHigh && angle > openSideAngleLow))
+                    if (openSideAngleHigh > Math.PI)
+                    {
+                        float wrappedHighAngle = (float)(-Math.PI * 2.0f + openSideAngleHigh);
+                        float wrappedLowAngle = (float)(wrappedHighAngle - Math.PI / 2.0f);
+                        if (mag < size && mag > size - 1 && (angle < wrappedHighAngle && angle > wrappedLowAngle))
+                            continue;
+                    }
+                    if (openSideAngleLow < -Math.PI)
+                    {
+                        float wrappedLowAngle = (float)(Math.PI * 2.0f + openSideAngleLow);
+                        float wrappedHighAngle = (float)(wrappedLowAngle + Math.PI / 2.0f);
+                        if (mag < size && mag > size - 1 && (angle < wrappedHighAngle && angle > wrappedLowAngle))
+                            continue;
+                    }
+                    if (nodePosition.X + i < 0 || nodePosition.X + i > map.GetLength(0) - 1 || nodePosition.Y + j < 0 || nodePosition.Y + j > map.GetLength(1) - 1 || mag > size || mag < size - 1 || (angle < openSideAngleHigh && angle > openSideAngleLow))
                     {
                         continue;
                     }
                     else
                     {
-                        map[nodePosition.x + i, nodePosition.y + j] = pathWidth;
+                        map[nodePosition.X + i, nodePosition.Y + j] = pathWidth;
                     }
                 }
             }
@@ -3432,9 +3469,18 @@ namespace MapGenerator
         }
 
         // Add an I room where the orientation is randomly assigned
-        private void AddIRoom(ref int[,] map, Vector2i nodePosition, int size, int pathWidth)
+        private void AddIRoom(ref int[,] map, MapNode node)
         {
-            double angle = _rng.NextDouble() * 2 * Math.PI;
+            int size = node.RoomSize;
+            int pathWidth = node.PathWidth;
+            Point nodePosition = node.PerturbedPosition;
+            
+            float angle;
+            if (node.RoomRotationType == MapNode.RotationType.Random)
+                angle = (float)(_rng.NextDouble() * 2 * Math.PI);
+            else
+                angle = (float)(node.RoomRotation * Math.PI / 180.0);
+
             Vector2 distance = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
             Vector2 normalizedDistance = distance / (float)Math.Sqrt(distance.x * distance.x + distance.y * distance.y);
             Vector2 rotatedNormalizedDistance;
@@ -3451,8 +3497,8 @@ namespace MapGenerator
             for (int i = -size; i < size; i++)
             {
                 // Add center of I
-                int xPos = (int)(nodePosition.x + (i * normalizedDistance.x));
-                int yPos = (int)(nodePosition.y + (i * normalizedDistance.y));
+                int xPos = (int)(nodePosition.X + (i * normalizedDistance.x));
+                int yPos = (int)(nodePosition.Y + (i * normalizedDistance.y));
                 if (xPos < 0 || xPos > map.GetLength(0) - 1 || yPos < 0 || yPos > map.GetLength(1) - 1)
                 {
                     continue;
@@ -3526,9 +3572,18 @@ namespace MapGenerator
         }
 
         // Add an L room where the orientation is randomly assigned
-        private void AddLRoom(ref int[,] map, Vector2i nodePosition, int size, int pathWidth)
+        private void AddLRoom(ref int[,] map, MapNode node)
         {
-            double angle = _rng.NextDouble() * 2 * Math.PI;
+            int size = node.RoomSize;
+            int pathWidth = node.PathWidth;
+            Point nodePosition = node.PerturbedPosition;
+            
+            double angle;
+            if (node.RoomRotationType == MapNode.RotationType.Random)
+                angle = _rng.NextDouble() * 2 * Math.PI;
+            else
+                angle = (float)(node.RoomRotation * Math.PI / 180.0);
+
             Vector2 distance = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
             Vector2 normalizedDistance = distance / (float)Math.Sqrt(distance.x * distance.x + distance.y * distance.y);
             Vector2 rotatedNormalizedDistance;
@@ -3545,8 +3600,8 @@ namespace MapGenerator
             for (int i = 0; i < 2 * size; i++)
             {
                 // Add one part of the L
-                int xPos = (int)(nodePosition.x + (i * normalizedDistance.x));
-                int yPos = (int)(nodePosition.y + (i * normalizedDistance.y));
+                int xPos = (int)(nodePosition.X + (i * normalizedDistance.x));
+                int yPos = (int)(nodePosition.Y + (i * normalizedDistance.y));
                 if (xPos < 0 || xPos > map.GetLength(0) - 1 || yPos < 0 || yPos > map.GetLength(1) - 1)
                 {
                     continue;
@@ -3556,8 +3611,8 @@ namespace MapGenerator
                     map[xPos, yPos] = pathWidth;
                 }
                 // Add the other part of the L
-                xPos = (int)(nodePosition.x + (i * rotatedNormalizedDistance.x));
-                yPos = (int)(nodePosition.y + (i * rotatedNormalizedDistance.y));
+                xPos = (int)(nodePosition.X + (i * rotatedNormalizedDistance.x));
+                yPos = (int)(nodePosition.Y + (i * rotatedNormalizedDistance.y));
                 if (xPos < 0 || xPos > map.GetLength(0) - 1 || yPos < 0 || yPos > map.GetLength(1) - 1)
                 {
                     continue;
@@ -3589,20 +3644,24 @@ namespace MapGenerator
         }
 
         // Add an o room
-        private void AddORoom(ref int[,] map, Vector2i nodePosition, int size, int pathWidth)
+        private void AddORoom(ref int[,] map, MapNode node)
         {
+            int size = node.RoomSize;
+            int pathWidth = node.PathWidth;
+            Point nodePosition = node.PerturbedPosition;
+
             for (int i = -size; i < size; i++)
             {
                 for (int j = -size; j < size; j++)
                 {
                     float mag = (float)Math.Sqrt(i * i + j * j);
-                    if (nodePosition.x + i < 0 || nodePosition.x + i > map.GetLength(0) - 1 || nodePosition.y + j < 0 || nodePosition.y + j > map.GetLength(1) - 1 || mag > size || mag < size - 1)
+                    if (nodePosition.X + i < 0 || nodePosition.X + i > map.GetLength(0) - 1 || nodePosition.Y + j < 0 || nodePosition.Y + j > map.GetLength(1) - 1 || mag > size || mag < size - 1)
                     {
                         continue;
                     }
                     else
                     {
-                        map[nodePosition.x + i, nodePosition.y + j] = pathWidth;
+                        map[nodePosition.X + i, nodePosition.Y + j] = pathWidth;
                     }
                 }
             }
@@ -3627,19 +3686,23 @@ namespace MapGenerator
         }
 
         // Add a solid O room
-        private void AddSolidORoom(ref int[,] map, Vector2i nodePosition, int size, int pathWidth)
+        private void AddSolidORoom(ref int[,] map, MapNode node)
         {
+            int size = node.RoomSize;
+            int pathWidth = node.PathWidth;
+            Point nodePosition = node.PerturbedPosition;
+
             for (int i = -size; i < size; i++)
             {
                 for (int j = -size; j < size; j++)
                 {
-                    if (nodePosition.x + i < 0 || nodePosition.x + i > map.GetLength(0) - 1 || nodePosition.y + j < 0 || nodePosition.y + j > map.GetLength(1) - 1 || Math.Sqrt(i * i + j * j) > size)
+                    if (nodePosition.X + i < 0 || nodePosition.X + i > map.GetLength(0) - 1 || nodePosition.Y + j < 0 || nodePosition.Y + j > map.GetLength(1) - 1 || Math.Sqrt(i * i + j * j) > size)
                     {
                         continue;
                     }
                     else
                     {
-                        map[nodePosition.x + i, nodePosition.y + j] = pathWidth;
+                        map[nodePosition.X + i, nodePosition.Y + j] = pathWidth;
                     }
                 }
             }
@@ -3688,9 +3751,18 @@ namespace MapGenerator
         }
 
         // Add an X room where the orientation is randomly assigned
-        private void AddXRoom(ref int[,] map, Vector2i nodePosition, int size, int pathWidth)
+        private void AddXRoom(ref int[,] map, MapNode node)
         {
-            double angle = _rng.NextDouble() * 2 * Math.PI;
+            int size = node.RoomSize;
+            int pathWidth = node.PathWidth;
+            Point nodePosition = node.PerturbedPosition;
+
+            double angle;
+            if (node.RoomRotationType == MapNode.RotationType.Random)
+                angle = _rng.NextDouble() * 2 * Math.PI;
+            else
+                angle = (float)(node.RoomRotation * Math.PI / 180.0);
+
             Vector2 distance = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
             Vector2 normalizedDistance = distance / (float)Math.Sqrt(distance.x * distance.x + distance.y * distance.y);
             Vector2 rotatedNormalizedDistance;
@@ -3707,8 +3779,8 @@ namespace MapGenerator
             for (int i = -size; i < size; i++)
             {
                 // Add one part of the X
-                int xPos = (int)(nodePosition.x + (i * normalizedDistance.x));
-                int yPos = (int)(nodePosition.y + (i * normalizedDistance.y));
+                int xPos = (int)(nodePosition.X + (i * normalizedDistance.x));
+                int yPos = (int)(nodePosition.Y + (i * normalizedDistance.y));
                 if (xPos < 0 || xPos > map.GetLength(0) - 1 || yPos < 0 || yPos > map.GetLength(1) - 1)
                 {
                     continue;
@@ -3718,8 +3790,8 @@ namespace MapGenerator
                     map[xPos, yPos] = pathWidth;
                 }
                 // Add the other part of the X
-                xPos = (int)(nodePosition.x + (i * rotatedNormalizedDistance.x));
-                yPos = (int)(nodePosition.y + (i * rotatedNormalizedDistance.y));
+                xPos = (int)(nodePosition.X + (i * rotatedNormalizedDistance.x));
+                yPos = (int)(nodePosition.Y + (i * rotatedNormalizedDistance.y));
                 if (xPos < 0 || xPos > map.GetLength(0) - 1 || yPos < 0 || yPos > map.GetLength(1) - 1)
                 {
                     continue;

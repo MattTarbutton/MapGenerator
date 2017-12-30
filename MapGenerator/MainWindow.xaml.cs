@@ -14,6 +14,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
@@ -81,7 +82,24 @@ namespace MapGenerator
             _selectedControls = new List<UserControl>();
 
             SeedTextBox.Text = Properties.Settings.Default.rngSeed.ToString();
-            
+
+            CommandBinding PasteCmdBinding = new CommandBinding()
+            {
+                Command = ApplicationCommands.Paste,
+                
+            };
+            PasteCmdBinding.Executed += PasteCmdBinding_Executed;
+            PasteCmdBinding.CanExecute += PasteCmdBinding_CanExecute;
+            this.CommandBindings.Add(PasteCmdBinding);
+
+            CommandBinding CopyCmdBinding = new CommandBinding()
+            {
+                Command = ApplicationCommands.Copy,
+            };
+            CopyCmdBinding.Executed += CopyCmdBinding_Executed;
+            CopyCmdBinding.CanExecute += CopyCmdBinding_CanExecute;
+            this.CommandBindings.Add(CopyCmdBinding);
+
             MapTypeComboBox.SelectedValue = (MapType)Properties.Settings.Default.selectedMapType;
             MazeRowsTextBox.Text = Properties.Settings.Default.mazeRows.ToString();
             MazeColumnsTextBox.Text = Properties.Settings.Default.mazeColumns.ToString();
@@ -101,6 +119,7 @@ namespace MapGenerator
             WallDecalSizeTextBox.Text = Properties.Settings.Default.wallDecalSize.ToString();
             GridCellWidthTextBox.Text = Properties.Settings.Default.gridCellWidth.ToString();
             GridCellHeightTextBox.Text = Properties.Settings.Default.gridCellHeight.ToString();
+            GridLineThicknessTextBox.Text = Properties.Settings.Default.gridLineThickness.ToString();
             string rngSeedString = Properties.Settings.Default.rngSeed.ToString();
             int rngSeed = 0;
             foreach (char c in SeedTextBox.Text)
@@ -125,7 +144,8 @@ namespace MapGenerator
                 DrawGridLines = Properties.Settings.Default.drawGrid,
                 WallDecalSize = Properties.Settings.Default.wallDecalSize,
                 GridLineHeight = Properties.Settings.Default.gridCellWidth,
-                GridLineWidth = Properties.Settings.Default.gridCellHeight
+                GridLineWidth = Properties.Settings.Default.gridCellHeight,
+                GridLineThickness = Properties.Settings.Default.gridLineThickness
             };
             //displayLevel.RegenerateLevel();
             displayLevel.OnLevelRegenerated += DisplayLevel_OnLevelRegenerated;
@@ -240,8 +260,8 @@ namespace MapGenerator
             PathWidthTextBox.Text = "6";
             MapWidthTextBox.Text = "300";
             MapHeightTextBox.Text = "300";
-            ImageHeightTextBox.Text = "600";
-            ImageWidthTextBox.Text = "600";
+            //ImageHeightTextBox.Text = "600";
+            //ImageWidthTextBox.Text = "600";
         }
 
         private void SeedTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -704,6 +724,20 @@ namespace MapGenerator
             GridCellHeightTextBox.SelectAll();
         }
 
+        private void GridLineThicknessTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (int.TryParse(GridLineThicknessTextBox.Text, out int newValue) && displayLevel != null)
+            {
+                displayLevel.GridLineThickness = newValue;
+                RegenerateLevel();
+            }
+        }
+
+        private void GridLineThicknessTextBox_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            GridLineThicknessTextBox.SelectAll();
+        }
+
         private void WallDecalSizeTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (int.TryParse(WallDecalSizeTextBox.Text, out int newValue) && displayLevel != null)
@@ -808,12 +842,24 @@ namespace MapGenerator
                 Width = 20,
                 Height = 20
             };
+            AddNodeToCanvas(newControl, location);
+            //Canvas.SetLeft(newControl, location.X - 10);
+            //Canvas.SetTop(newControl, location.Y - 10);
+            //MapCanvas.Children.Add(newControl);
+            //newControl.MapNode.PropertyChanged += OnPropertyChanged;
+            //mapNodes.Add(newControl);
+            //PropertyGrid1.SelectedObject = newNode;
+            //RegenerateLevel();
+        }
+
+        private void AddNodeToCanvas(MapNodeControl newControl, System.Windows.Point location)
+        {
             Canvas.SetLeft(newControl, location.X - 10);
             Canvas.SetTop(newControl, location.Y - 10);
             MapCanvas.Children.Add(newControl);
             newControl.MapNode.PropertyChanged += OnPropertyChanged;
             mapNodes.Add(newControl);
-            PropertyGrid1.SelectedObject = newNode;
+            PropertyGrid1.SelectedObject = newControl.MapNode;
             RegenerateLevel();
         }
 
@@ -1068,8 +1114,9 @@ namespace MapGenerator
             {
                 if (_selectedControls.Count > 0)
                 {
-                    foreach (UserControl control in _selectedControls)
+                    while (_selectedControls.Count > 0)
                     {
+                        UserControl control = _selectedControls.Last();
                         if (control.GetType() == typeof(MapNodeControl))
                             ((MapNodeControl)control).Dispose();
                         else if (control.GetType() == typeof(ConnectionControl))
@@ -1108,6 +1155,59 @@ namespace MapGenerator
             //        SelectControl(control, true);
             //    }
             //}
+        }
+
+        private void PasteCmdBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = Clipboard.ContainsText(TextDataFormat.CommaSeparatedValue);
+        }
+        
+        private void CopyCmdBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+        
+        private void CopyCmdBinding_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            string csv = "";
+            foreach (UserControl control in _selectedControls)
+            {
+                if (control.GetType() == typeof(MapNodeControl))
+                {
+                    MapNode node = ((MapNodeControl)control).MapNode;
+                    csv += "MapNodeControl," + Canvas.GetLeft(control) + "," + Canvas.GetTop(control) + "," + node.GetCSV() + ",";
+                }
+            }
+
+            Clipboard.SetText(csv, TextDataFormat.CommaSeparatedValue);
+        }
+        
+        private void PasteCmdBinding_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            string csv = Clipboard.GetText(TextDataFormat.CommaSeparatedValue);
+
+            if (csv != null)
+            {
+                string[] values = csv.Split(',');
+
+                for (int i = 0; i < values.Length; i++)
+                {
+                    if (values[i] == "MapNodeControl")
+                    {
+                        i++;
+                        double.TryParse(values[i], out double left);
+                        left += 20;
+                        i++;
+                        double.TryParse(values[i], out double top);
+                        top += 20;
+                        i++;
+
+                        MapNode newNode = new MapNode(GetMapCanvasRatio(), values, ref i);
+                        MapNodeControl newControl = new MapNodeControl(newNode, GetMapCanvasRatio(), this);
+                        AddNodeToCanvas(newControl, new System.Windows.Point(left, top));
+                    }
+                }
+            }
         }
     }
 }
