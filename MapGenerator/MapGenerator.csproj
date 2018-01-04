@@ -152,5 +152,14 @@
   <ItemGroup>
     <Resource Include="Resources\OpenFolder_16x.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\stone.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\dots.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\hatch.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

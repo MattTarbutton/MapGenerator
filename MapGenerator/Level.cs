@@ -1098,7 +1098,7 @@ namespace MapGenerator
                 
                 connectedPoints.Clear();
             }
-
+            
             // Add a decal for walls
             if (WallDecalSize > 0)
             {

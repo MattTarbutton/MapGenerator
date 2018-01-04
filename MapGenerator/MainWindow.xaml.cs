@@ -167,7 +167,7 @@ namespace MapGenerator
             MapCanvas.Children.Add(newControl);
             newControl.MapNode.PropertyChanged += OnPropertyChanged;
             mapNodes.Add(newControl);
-            PropertyGrid1.SelectedObject = newNode;
+            //PropertyGrid1.SelectedObject = newNode;
 
             _selectionRect = new System.Windows.Shapes.Rectangle()
             {
@@ -958,7 +958,7 @@ namespace MapGenerator
             MapCanvas.Children.Add(newControl);
             newControl.MapNode.PropertyChanged += OnPropertyChanged;
             mapNodes.Add(newControl);
-            PropertyGrid1.SelectedObject = newControl.MapNode;
+            //PropertyGrid1.SelectedObject = newControl.MapNode;
             RegenerateLevel();
         }
 
@@ -979,7 +979,7 @@ namespace MapGenerator
         {
             if (_selectedControls.Contains(controlToSelect))
             {
-                PropertyGrid1.SelectedObject = controlToSelect.DataContext;
+                //PropertyGrid1.SelectedObject = controlToSelect.DataContext;
                 return;
             }
 
@@ -987,13 +987,14 @@ namespace MapGenerator
             {
                 if (controlToSelect.GetType() == typeof(MapNodeControl))
                 {
-                    PropertyGrid1.SelectedObject = controlToSelect.DataContext;
+                    //PropertyGrid1.SelectedObject = controlToSelect.DataContext;
+                    //PropertyGrid1.SelectedObjects = _selectedControls.ToArray();
                     _selectedControls.Add(controlToSelect);
                     ((MapNodeControl)controlToSelect).IsSelected = true;
                 }
                 else if (controlToSelect.GetType() == typeof(ConnectionControl))
                 {
-                    PropertyGrid1.SelectedObject = controlToSelect.DataContext;
+                    //PropertyGrid1.SelectedObject = controlToSelect.DataContext;
                     _selectedControls.Add(controlToSelect);
                     ((ConnectionControl)controlToSelect).IsSelected = true;
                 }
@@ -1018,22 +1019,29 @@ namespace MapGenerator
                 }
                 if (controlToSelect == null)
                 {
-                    PropertyGrid1.SelectedObject = null;
+                    //PropertyGrid1.SelectedObject = null;
                     _selectedControls.Clear();
                 }
                 else if (controlToSelect.GetType() == typeof(MapNodeControl))
                 {
-                    PropertyGrid1.SelectedObject = controlToSelect.DataContext;
+                    //PropertyGrid1.SelectedObject = controlToSelect.DataContext;
                     _selectedControls.Add(controlToSelect);
                     ((MapNodeControl)controlToSelect).IsSelected = true;
                 }
                 else if (controlToSelect.GetType() == typeof(ConnectionControl))
                 {
-                    PropertyGrid1.SelectedObject = controlToSelect.DataContext;
+                    //PropertyGrid1.SelectedObject = controlToSelect.DataContext;
                     _selectedControls.Add(controlToSelect);
                     ((ConnectionControl)controlToSelect).IsSelected = true;
                 }
             }
+
+            List<object> selectedData = new List<object>();
+            foreach (UserControl control in _selectedControls)
+            {
+                selectedData.Add(control.DataContext);
+            }
+            PropertyGrid1.SelectedObjects = selectedData.ToArray();
         }
 
         public void MoveControl(Vector movementVector, System.Windows.Point senderCanvasPosition)
@@ -1361,7 +1369,7 @@ namespace MapGenerator
                         MapNodeControl newControl = new MapNodeControl(newNode, GetMapCanvasRatio(), this);
                         AddNodeToCanvas(newControl, new System.Windows.Point(left, top));
                         SelectControl(newControl, true);
-                        PropertyGrid1.SelectedObject = newNode;
+                        //PropertyGrid1.SelectedObject = newNode;
                         mapNodeControlsPasted.Add(newPasteID, newControl);
                     }
                     else if (values[i] == "ConnectionControl")
@@ -1531,7 +1539,7 @@ namespace MapGenerator
                             MapNodeControl newControl = new MapNodeControl(newNode, GetMapCanvasRatio(), this);
                             AddNodeToCanvas(newControl, new System.Windows.Point(left, top));
                             SelectControl(newControl, true);
-                            PropertyGrid1.SelectedObject = newNode;
+                            //PropertyGrid1.SelectedObject = newNode;
                             mapNodeControlsPasted.Add(newPasteID, newControl);
                         }
                         else if (values[i] == "ConnectionControl")
