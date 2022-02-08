@@ -906,6 +906,11 @@ namespace MapGenerator
 
             if (double.IsInfinity(hDelta) || double.IsInfinity(vDelta)) return;
 
+            UpdateElementsPositions(hDelta, vDelta);
+        }
+
+        private void UpdateElementsPositions(double hDelta, double vDelta)
+        {
             foreach (UIElement element in MapCanvas.Children)
             {
                 double left = Canvas.GetLeft(element);
@@ -918,7 +923,7 @@ namespace MapGenerator
                 Canvas.SetLeft(element, left * hDelta);
                 Canvas.SetTop(element, top * vDelta);
             }
-            
+
             MapCanvasRatioChanged?.Invoke(GetMapCanvasRatio());
         }
 
@@ -955,6 +960,17 @@ namespace MapGenerator
         {
             Canvas.SetLeft(newControl, location.X - 10);
             Canvas.SetTop(newControl, location.Y - 10);
+            MapCanvas.Children.Add(newControl);
+            newControl.MapNode.PropertyChanged += OnPropertyChanged;
+            mapNodes.Add(newControl);
+            //PropertyGrid1.SelectedObject = newControl.MapNode;
+            RegenerateLevel();
+        }
+
+        private void AddUnscaledNodeToCanvas(MapNodeControl newControl, System.Windows.Point location)
+        {
+            Canvas.SetLeft(newControl, location.X / GetMapCanvasRatio() - 10);
+            Canvas.SetTop(newControl, location.Y / GetMapCanvasRatio() - 10);
             MapCanvas.Children.Add(newControl);
             newControl.MapNode.PropertyChanged += OnPropertyChanged;
             mapNodes.Add(newControl);
@@ -1408,6 +1424,7 @@ namespace MapGenerator
             csv.Append(string.Format("{0},{1},{2},{3},", DrawGridLinesCheckBox.IsChecked, WallDecalSizeTextBox.Text, GridCellWidthTextBox.Text, GridCellHeightTextBox.Text));
             csv.Append(string.Format("{0},{1},{2},{3},", GridLineThicknessTextBox.Text, BackgroundColorPicker.SelectedColor, WallColorPicker.SelectedColor, InteriorColorPicker.SelectedColor));
             csv.Append(string.Format("{0},{1},{2},", GridLineColorPicker.SelectedColor, WallDecalColor1Picker.SelectedColor, WallDecalColor2Picker.SelectedColor));
+            csv.Append(Environment.NewLine);
 
             List<UserControl> controls = new List<UserControl>();
             foreach (ConnectionControl conControl in connections)
@@ -1437,6 +1454,7 @@ namespace MapGenerator
                                 controlsCopied.Add(nodeControls[i], pasteID);
                                 MapNode node = (nodeControls[i]).MapNode;
                                 csv.Append("MapNodeControl," + pasteID + "," + Canvas.GetLeft(nodeControls[i]) + "," + Canvas.GetTop(nodeControls[i]) + "," + node.GetCSV() + ",");
+                                csv.Append(Environment.NewLine);
                                 id[i] = pasteID;
                                 pasteID++;
                             }
@@ -1447,7 +1465,7 @@ namespace MapGenerator
                         }
 
                         Connection con = ((ConnectionControl)control).Connection;
-                        csv.Append("ConnectionControl," + id[0] + "," + id[1] + "," + con.GetCSV());
+                        csv.Append("ConnectionControl," + id[0] + "," + id[1] + "," + con.GetCSV() + ",");
                     }
                     // If we are copying connections too, a map node control could already be in the list
                     if (!controlsCopied.ContainsKey(control))
@@ -1457,6 +1475,7 @@ namespace MapGenerator
                             controlsCopied.Add(control, pasteID);
                             MapNode node = ((MapNodeControl)control).MapNode;
                             csv.Append("MapNodeControl," + pasteID + "," + Canvas.GetLeft(control) + "," + Canvas.GetTop(control) + "," + node.GetCSV() + ",");
+                            csv.Append(Environment.NewLine);
                             pasteID++;
                         }
                     }
@@ -1537,7 +1556,7 @@ namespace MapGenerator
 
                             MapNode newNode = new MapNode(GetMapCanvasRatio(), values, ref i);
                             MapNodeControl newControl = new MapNodeControl(newNode, GetMapCanvasRatio(), this);
-                            AddNodeToCanvas(newControl, new System.Windows.Point(left, top));
+                            AddUnscaledNodeToCanvas(newControl, new System.Windows.Point(left, top));
                             SelectControl(newControl, true);
                             //PropertyGrid1.SelectedObject = newNode;
                             mapNodeControlsPasted.Add(newPasteID, newControl);
@@ -1563,6 +1582,8 @@ namespace MapGenerator
                     }
                 }
             }
+
+            UpdateElementsPositions(1, 1);
 
             regeneratingLevel = false;
             RegenerateLevel();

@@ -464,9 +464,9 @@ namespace MapGenerator
                     else if (checkX < 0 || checkX >= map.GetLength(0) || checkY < 0 || checkY >= map.GetLength(1))
                     {
                         //Count the borders as live neighbors
-                        //count++;
+                        count++;
                         //Count the borders as dead neighbors
-                        continue;
+                        //continue;
                     }
                     else
                     {
@@ -583,9 +583,24 @@ namespace MapGenerator
             return count;
         }
 
+        private double DistanceBetweenPoints(Point point1, Point point2)
+        {
+            return Math.Sqrt(Math.Pow((point2.X - point1.X), 2) + Math.Pow(point2.Y - point1.Y, 2));
+        }
+
         private bool IndexOnEdge(int[,] map, int xIndex, int yIndex)
         {
             return xIndex == map.GetLength(0) - 1 || xIndex == 0 || yIndex == map.GetLength(1) - 1 || yIndex == 0;
+        }
+
+        private bool PointOnEdge(Point point, int width, int height)
+        {
+            return point.X == 0 || point.X == width || point.Y == 0 || point.Y == height;
+        }
+
+        private bool PointsOnSameWall(Point point1, Point point2, int width, int height)
+        {
+            return (point1.X == point2.X && (point1.X == 0 || point1.X == width)) || (point1.Y == point2.Y && (point1.Y == 0 || point1.Y == height));
         }
 
         private int GetAdjacentWalls(int[,] map, int xIndex, int yIndex, int wallNumber)
@@ -892,6 +907,7 @@ namespace MapGenerator
             g.FillRectangle(new SolidBrush(BackgroundColor), 0, 0, map.GetLength(0) * horizontalScale, map.GetLength(1) * verticalScale);
 
             Pen linePen = new Pen(WallColor, LineSize);
+            Pen debugPen = new Pen(Brushes.Red, LineSize);
 
             Hashtable openSet = new Hashtable();
             List<Point> singleNeighbor = new List<Point>();
@@ -908,11 +924,11 @@ namespace MapGenerator
                         Point currentPoint = new Point(i, j);
                         openSet.Add(UniquePointHashCode(currentPoint, map), currentPoint);
                         wallPoints.Add(currentPoint);
-                        //g.DrawEllipse(linePen, i * horizontalScale, j * verticalScale, horizontalScale / 4, verticalScale / 4);
+                        //g.DrawEllipse(debugPen, i * horizontalScale, j * verticalScale, horizontalScale / 1, verticalScale / 1);
                         if (IndexOnEdge(map, i, j) && CountAdjacentNeighborsNotOfValue(map, i, j, 0) >= 1)
                         {
                             singleNeighbor.Add(currentPoint);
-                            //g.DrawEllipse(linePen, i * horizontalScale, j * verticalScale, horizontalScale * 4, verticalScale * 4);
+                            //g.DrawEllipse(debugPen, i * horizontalScale, j * verticalScale, horizontalScale * 4, verticalScale * 4);
                         }
                     }
                 }
@@ -1008,6 +1024,10 @@ namespace MapGenerator
 
                 paths.Add(new List<Point>(connectedPoints));
 
+                //g.DrawEllipse(debugPen, connectedPoints[0].X - horizontalScale * 4, connectedPoints[0].Y - verticalScale * 4, horizontalScale * 8, verticalScale * 8);
+                //g.DrawEllipse(debugPen, connectedPoints[connectedPoints.Count - 1].X - horizontalScale * 4, connectedPoints[connectedPoints.Count - 1].Y - verticalScale * 4, horizontalScale * 8, verticalScale * 8);
+                //g.DrawLine(debugPen, connectedPoints[0], connectedPoints[connectedPoints.Count - 1]);
+
                 connectedPoints.Clear();
             }
 
@@ -1098,7 +1118,7 @@ namespace MapGenerator
                 
                 connectedPoints.Clear();
             }
-            
+
             // Add a decal for walls
             if (WallDecalSize > 0)
             {
@@ -1126,6 +1146,7 @@ namespace MapGenerator
 
             // Add a filled path to get rid of the inside of the path
             GraphicsPath fillPath = new GraphicsPath();
+            List<List<Point>> messedUpPaths = new List<List<Point>>();
             foreach (List<Point> path in paths)
             {
                 byte[] types = new byte[path.Count];
@@ -1136,9 +1157,123 @@ namespace MapGenerator
                 }
 
                 GraphicsPath newPath = new GraphicsPath(path.ToArray(), types);
+
+                if (PointOnEdge(path[0], map.GetLength(0) * horizontalScale, map.GetLength(1) * verticalScale) &&
+                    !PointsOnSameWall(path[0], path[path.Count - 1], map.GetLength(0) * horizontalScale, map.GetLength(1) * verticalScale))
+                {
+                    messedUpPaths.Add(path);
+                    continue;
+                }
+                
                 fillPath.AddPath(newPath, false);
             }
-            g.FillPath(new SolidBrush(InteriorColor), fillPath);
+
+            //Fuse paths
+            //while (messedUpPaths.Count > 0)
+            //{
+            //    List<Point> currentPath = messedUpPaths.Last();
+            //    messedUpPaths.Remove(currentPath);
+
+            //    List<Point> closestPath = null;
+            //    double distance = 9999999;
+            //    bool closestToFirstPointInCurrentPath = true;
+            //    bool closestToFirstPointInClosestPath = true;
+            //    foreach (List<Point> path in messedUpPaths)
+            //    {
+            //        double distanceBetween = DistanceBetweenPoints(path[0], currentPath[0]);
+            //        if (distanceBetween < distance)
+            //        {
+            //            closestPath = path;
+            //            distance = distanceBetween;
+            //            closestToFirstPointInCurrentPath = true;
+            //            closestToFirstPointInClosestPath = true;
+            //        }
+            //        distanceBetween = DistanceBetweenPoints(path[0], currentPath[currentPath.Count - 1]);
+            //        if (distanceBetween < distance)
+            //        {
+            //            closestPath = path;
+            //            distance = distanceBetween;
+            //            closestToFirstPointInCurrentPath = false;
+            //            closestToFirstPointInClosestPath = true;
+            //        }
+            //        distanceBetween = DistanceBetweenPoints(path[path.Count - 1], currentPath[currentPath.Count - 1]);
+            //        if (distanceBetween < distance)
+            //        {
+            //            closestPath = path;
+            //            distance = distanceBetween;
+            //            closestToFirstPointInCurrentPath = false;
+            //            closestToFirstPointInClosestPath = false;
+            //        }
+            //        distanceBetween = DistanceBetweenPoints(path[path.Count - 1], currentPath[0]);
+            //        if (distanceBetween < distance)
+            //        {
+            //            closestPath = path;
+            //            distance = distanceBetween;
+            //            closestToFirstPointInCurrentPath = true;
+            //            closestToFirstPointInClosestPath = false;
+            //        }
+            //    }
+
+            //    if (closestPath == null)
+            //    {
+            //        continue;
+            //    }
+            //    messedUpPaths.Remove(closestPath);
+            //    if (closestToFirstPointInClosestPath && closestToFirstPointInCurrentPath)
+            //    {
+            //        closestPath.Reverse();
+            //    }
+            //    else if (closestToFirstPointInClosestPath && !closestToFirstPointInCurrentPath)
+            //    {
+            //    }
+            //    else if (!closestToFirstPointInClosestPath && !closestToFirstPointInCurrentPath)
+            //    {
+            //        currentPath.Reverse();
+            //    }
+            //    else
+            //    {
+            //    }
+
+            //    byte[] types = new byte[currentPath.Count];
+            //    types[0] = (byte)PathPointType.Start;
+            //    for (int i = 1; i < types.Length; i++)
+            //    {
+            //        types[i] = (byte)PathPointType.Bezier;
+            //    }
+
+            //    Pen newPen = new Pen(Brushes.Blue, 10);
+            //    try
+            //    {
+            //        GraphicsPath newGraphicsPath = new GraphicsPath(currentPath.ToArray(), types);
+            //        fillPath.AddPath(newGraphicsPath, false);
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        Console.WriteLine("");
+            //    }
+
+            //    types = new byte[closestPath.Count];
+            //    types[0] = (byte)PathPointType.Start;
+            //    for (int i = 1; i < types.Length; i++)
+            //    {
+            //        types[i] = (byte)PathPointType.Bezier;
+            //    }
+
+            //    try
+            //    {
+            //        GraphicsPath newGraphicsPath = new GraphicsPath(closestPath.ToArray(), types);
+            //        fillPath.AddPath(newGraphicsPath, true);
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        Console.WriteLine("");
+            //    }
+            //}
+
+            if (messedUpPaths.Count == 0)
+            {
+                g.FillPath(new SolidBrush(InteriorColor), fillPath);
+            }
 
             // Draw each path starting with the largest path
             while (paths.Count > 0)
@@ -2822,6 +2957,8 @@ namespace MapGenerator
         private int[,] GenerateRandomWalkMaze(ref Vector2i startingPoint, int mazeRows, int mazeColumns, int mapWidth, int mapHeight)
         {
             MazeNode[,] mazeNodes = GenerateMazeNodes(startingPoint, mazeRows, mazeColumns);
+            mapWidth = mapWidth + 2;
+            mapHeight = mapHeight + 2;
             int[,] maze = new int[mapWidth, mapHeight];
             int xEdgeBuffer = PathWidth * mapWidth / (20 * (mazeColumns + 1));
             int yEdgeBuffer = PathWidth * mapHeight / (20 * (mazeRows + 1));
